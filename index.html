@@ -3,474 +3,847 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Learn To Swim — Interactive Wireframe (v1, grayscale)</title>
-<meta name="description" content="Desktop-first interactive wireframe for a beginner swimming learning website. Layout, IA and interaction only — no visual design." />
+<title>Learn To Swim</title>
+<meta name="description" content="A premium interactive beginner swimming lesson. One swimmer, one continuous body of water, one movement at a time." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Web fonts load without blocking first paint; the fallback stack holds
+     the page until they arrive, and the page is fully legible without them. -->
+<link id="webfont" rel="stylesheet" media="print"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>(function(){var l=document.getElementById("webfont");
+  if(!l) return;
+  var go=function(){ l.media="all"; };
+  l.addEventListener("load", go); setTimeout(go, 1200);
+})();</script>
 <style>
 /* =========================================================================
-   WIREFRAME STYLESHEET — GRAYSCALE ONLY
-   No brand colour, no gradients, no final typography. Structure + state.
+   LEARN TO SWIM — VISUAL ENHANCEMENT v1
+   Structure, IA and interaction model are inherited from the approved
+   wireframe and deliberately unchanged. This layer adds the environment:
+   one continuous body of water behind the whole page, a cinematic light
+   model, an articulated swimmer, and a glass interface floating above it.
    ========================================================================= */
 
 /* ---- 1. TOKENS ---------------------------------------------------------- */
 :root{
-  --white:#ffffff;
-  --g05:#f7f7f7;
-  --g10:#efefef;
-  --g20:#e2e2e2;
-  --g30:#cfcfcf;
-  --g40:#b4b4b4;
-  --g50:#949494;
-  --g60:#6f6f6f;
-  --g70:#4d4d4d;
-  --g80:#2e2e2e;
-  --black:#111111;
+  /* air — the gallery the pool sits in */
+  --paper:#FCFBF9;
+  --paper-2:#F5F3EF;
+  --paper-3:#EDEBE6;
 
-  --line:1px solid var(--g30);
-  --line-strong:1px solid var(--g60);
-  --line-dash:1px dashed var(--g40);
+  /* ink — biased blue, so the darkest value belongs to the water world */
+  --ink:#101A22;
+  --ink-2:#33424E;
+  --ink-3:#46545F;
+  --ink-4:#55636F;
+
+  /* water, surface to floor */
+  --haze:#DFEDF3;
+  --water-0:#CBE4EF;
+  --water:#9CC9DE;
+  --water-2:#6BAAC9;
+  --deep:#175A7E;
+  --abyss:#0A3049;
+
+  /* body */
+  --skin:#E4C0A2;
+  --skin-hi:#F2D8C1;
+  --skin-sh:#BE9070;
+  --suit:#1F2C38;
+  --suit-hi:#33465A;
+  --cap:#2B3E4E;
+
+  /* lines + glass */
+  --rule:rgba(16,26,34,.10);
+  --rule-2:rgba(16,26,34,.18);
+  --rule-w:rgba(255,255,255,.55);
+  --glass:rgba(255,255,255,.58);
+  --glass-2:rgba(255,255,255,.34);
+  --glass-line:rgba(255,255,255,.70);
+  --glass-edge:rgba(16,26,34,.09);
+  --shadow-s:0 1px 2px rgba(16,26,34,.05), 0 6px 18px -8px rgba(16,26,34,.14);
+  --shadow-m:0 2px 6px rgba(16,26,34,.05), 0 24px 48px -28px rgba(23,90,126,.34);
+  --shadow-l:0 40px 90px -50px rgba(10,48,73,.45);
 
   --shell:1440px;
   --gutter:64px;
+  --radius:14px;
+  --radius-s:10px;
+  --radius-l:22px;
 
-  --step:8px;
-  --radius:2px;
+  /* motion — micro / card / character / environment */
+  --t-micro:240ms;
+  --t-card:420ms;
+  --t-char:1400ms;
+  --t-env:2200ms;
+  --ease:cubic-bezier(.22,.61,.24,1);
+  --ease-soft:cubic-bezier(.4,.14,.2,1);
 
-  --dur:600ms;
-  --dur-fast:220ms;
-  --ease:cubic-bezier(.4,.14,.3,1);
+  --font-d:"Plus Jakarta Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --font-b:"Inter","Segoe UI",Helvetica,Arial,sans-serif;
+  --font-m:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  /* scroll story: 0 = above water, 1 = deepest */
+  --depth:0;
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:120px}
+html{scroll-behavior:smooth;scroll-padding-top:124px}
 body{
-  margin:0;background:var(--white);color:var(--black);
-  font-family:var(--font);font-size:15px;line-height:1.55;
-  -webkit-font-smoothing:antialiased;
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-b);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
 }
-img,svg{display:block;max-width:100%}
+img,svg,canvas{display:block;max-width:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 h1,h2,h3,h4,p,ul,ol,figure{margin:0}
 ul,ol{padding:0;list-style:none}
-table{border-collapse:collapse;width:100%}
+table{border-collapse:separate;border-spacing:0;width:100%}
+::selection{background:var(--water);color:var(--ink)}
 
 /* ---- 2. ACCESSIBILITY --------------------------------------------------- */
-:focus-visible{outline:2px solid var(--black);outline-offset:3px}
-.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--white);border:var(--line-strong);padding:12px 16px}
+:focus-visible{outline:2px solid var(--deep);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-9999px;top:0;z-index:200;background:var(--paper);
+  border:1px solid var(--rule-2);border-radius:var(--radius-s);padding:12px 18px}
 .skip:focus{left:16px;top:12px}
-[hidden]{display:none!important}
 .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
 
-/* ---- 3. LAYOUT ---------------------------------------------------------- */
+/* ---- 3. THE ENVIRONMENT ------------------------------------------------
+   One pool behind the entire document. --depth is driven by scroll, so the
+   page travels from morning air, through the surface, into depth, and back
+   up at the closing section.                                              */
+#env{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:var(--paper)}
+#env::before{                       /* the water column itself */
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    var(--paper) 0%,
+    #F7F9F9 26%,
+    #E9F2F6 46%,
+    var(--water-0) 66%,
+    #B7D9E9 86%,
+    #A3CFE3 100%);
+  opacity:calc(.16 + var(--depth) * .74);
+  transition:opacity var(--t-env) var(--ease-soft);
+}
+#env::after{                        /* atmospheric falloff at depth */
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 55%),
+             linear-gradient(180deg, rgba(10,48,73,0) 34%, rgba(10,48,73,.10) 78%, rgba(10,48,73,.20) 100%);
+  opacity:calc(.25 + var(--depth) * .75);
+  transition:opacity var(--t-env) var(--ease-soft);
+}
+#env-canvas{position:absolute;inset:0;width:100%;height:100%;
+  opacity:calc(.12 + var(--depth) * .68);transition:opacity var(--t-env) var(--ease-soft)}
+
+/* shafts of light from the surface */
+.rays{position:absolute;inset:-20% -10%;
+  background:repeating-linear-gradient(102deg,
+    rgba(255,255,255,0) 0 62px,
+    rgba(255,255,255,.34) 62px 84px,
+    rgba(255,255,255,0) 84px 168px);
+  filter:blur(26px);
+  opacity:calc(var(--depth) * .5);
+  animation:rayDrift 38s ease-in-out infinite alternate;
+  transition:opacity var(--t-env) var(--ease-soft);
+  mix-blend-mode:screen;
+}
+@keyframes rayDrift{from{transform:translate3d(-3%,0,0) skewX(0deg)}to{transform:translate3d(3%,0,0) skewX(1.4deg)}}
+
+/* every page layer sits above the environment */
+.header,.progress,main,.footer{position:relative;z-index:2}
+
+/* ---- 4. LAYOUT ---------------------------------------------------------- */
 .wrap{max-width:var(--shell);margin:0 auto;padding:0 var(--gutter);width:100%}
-.section{border-top:var(--line);padding:96px 0 104px;position:relative}
+.section{padding:96px 0 104px;position:relative}
 .section--tight{padding:72px 0 80px}
-.grid{display:grid;gap:48px}
+.section+.section::before{        /* a hairline that reads as a water level */
+  content:"";position:absolute;top:0;left:var(--gutter);right:var(--gutter);height:1px;
+  background:linear-gradient(90deg,transparent,var(--rule) 12%,var(--rule) 88%,transparent);
+}
+.grid{display:grid;gap:44px}
 .g-2{grid-template-columns:repeat(2,1fr)}
 .g-3{grid-template-columns:repeat(3,1fr)}
 .g-4{grid-template-columns:repeat(4,1fr)}
 .g-5{grid-template-columns:repeat(5,1fr)}
-.split{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:56px;align-items:start}
-.split--rev{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}
+.split{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);gap:60px;align-items:start}
+.split--rev{grid-template-columns:minmax(0,1fr) minmax(0,1.32fr)}
 .stack{display:flex;flex-direction:column}
-.stack>*+*{margin-top:16px}
-.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.stack>*+*{margin-top:14px}
+.row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 
-/* ---- 4. TYPE SCALE (placeholder only) ---------------------------------- */
+/* ---- 5. TYPOGRAPHY ------------------------------------------------------ */
 .eyebrow{
-  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--g60);display:flex;align-items:center;gap:10px;margin-bottom:20px;
+  font-family:var(--font-m);font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);display:flex;align-items:center;gap:14px;margin-bottom:26px;
 }
-.eyebrow::after{content:"";flex:1;height:1px;background:var(--g20);max-width:180px}
-.h-hero{font-size:76px;line-height:.98;letter-spacing:-.03em;font-weight:700;text-transform:uppercase}
-.h-1{font-size:44px;line-height:1.08;letter-spacing:-.02em;font-weight:700;max-width:16ch}
-.h-2{font-size:26px;line-height:1.2;letter-spacing:-.01em;font-weight:700}
-.h-3{font-size:17px;line-height:1.3;font-weight:700}
-.lede{font-size:18px;line-height:1.5;color:var(--g70);max-width:46ch}
-.copy{color:var(--g70);max-width:52ch}
-.small{font-size:13px;color:var(--g60)}
-.label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g60)}
-.num{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--g50)}
-.note{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--g50);border-left:2px solid var(--g30);padding-left:12px;line-height:1.6}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--rule);max-width:200px}
+.h-hero{
+  font-family:var(--font-d);font-size:clamp(64px,6.4vw,92px);line-height:.94;
+  letter-spacing:-.045em;font-weight:800;text-wrap:balance;
+}
+.h-1{font-family:var(--font-d);font-size:clamp(34px,3.1vw,46px);line-height:1.06;
+  letter-spacing:-.032em;font-weight:700;max-width:17ch;text-wrap:balance}
+.h-2{font-family:var(--font-d);font-size:26px;line-height:1.18;letter-spacing:-.022em;font-weight:700;text-wrap:balance}
+.h-3{font-family:var(--font-d);font-size:17px;line-height:1.3;font-weight:700;letter-spacing:-.012em}
+.lede{font-size:18px;line-height:1.55;color:var(--ink-2);max-width:44ch;font-weight:400}
+.copy{color:var(--ink-2);max-width:52ch}
+.small{font-size:13px;color:var(--ink-3);line-height:1.55}
+.label{font-family:var(--font-m);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.num{display:block;font-family:var(--font-m);font-size:11px;letter-spacing:.16em;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.dots{display:block;font-family:var(--font-m);font-size:12px;letter-spacing:.26em;color:var(--ink-2)}
+.note{
+  font-family:var(--font-m);font-size:11px;letter-spacing:.05em;line-height:1.75;color:var(--ink-3);
+  border-left:1px solid var(--rule-2);padding-left:16px;
+}
 
-/* ---- 5. BUTTONS / CONTROLS --------------------------------------------- */
+/* ---- 6. GLASS SYSTEM ---------------------------------------------------
+   Used only where an element must float above the water: controls, stage
+   frames, selected cards. The environment carries the rest of the depth. */
 .btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:10px;
-  min-height:48px;padding:0 24px;border:var(--line-strong);border-radius:var(--radius);
-  font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-  background:var(--white);transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease);
-  text-decoration:none;color:var(--black);
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:50px;padding:0 26px;border-radius:100px;
+  font-family:var(--font-m);font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;isolation:isolate;
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+  border:1px solid var(--glass-line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-s);
+  transition:transform var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease),
+             background var(--t-micro) var(--ease), border-color var(--t-micro) var(--ease),
+             color var(--t-micro) var(--ease);
 }
-.btn:hover{background:var(--g10)}
-.btn--solid{background:var(--black);color:var(--white);border-color:var(--black)}
-.btn--solid:hover{background:var(--g80)}
-.btn--sm{min-height:38px;padding:0 16px;font-size:11px}
-.btn[aria-pressed="true"],.btn[aria-selected="true"]{background:var(--black);color:var(--white);border-color:var(--black)}
-.btn:disabled{opacity:.35;cursor:not-allowed}
-.btn-group{display:inline-flex;border:var(--line-strong);border-radius:var(--radius);overflow:hidden}
-.btn-group .btn{border:0;border-right:var(--line-strong);border-radius:0}
-.btn-group .btn:last-child{border-right:0}
+.btn:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,.74);
+  border-color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1), var(--shadow-m);
+}
+.btn:active{transform:translateY(0) scale(.985);box-shadow:inset 0 1px 3px rgba(16,26,34,.14)}
+.btn--solid{
+  background:linear-gradient(180deg,#1B2A36,var(--ink));color:#fff;border-color:rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px -14px rgba(16,26,34,.7);
+}
+.btn--solid:hover{background:linear-gradient(180deg,#24384a,#16232d);color:#fff}
+.btn--sm{min-height:40px;padding:0 18px;font-size:10px;letter-spacing:.14em}
+.btn[aria-pressed="true"],.btn[aria-selected="true"]{
+  background:linear-gradient(180deg,#1B2A36,var(--ink));color:#fff;border-color:rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2), var(--shadow-s);
+}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-group{
+  display:inline-flex;border-radius:100px;overflow:hidden;
+  background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-s);
+}
+.btn-group .btn{border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.btn-group .btn+.btn{border-left:1px solid var(--glass-edge)}
+.btn-group .btn:hover{transform:none;background:rgba(255,255,255,.6)}
 
-/* ---- 6. PLACEHOLDER PRIMITIVES ----------------------------------------- */
+/* ---- 7. CARDS ----------------------------------------------------------- */
+.card{
+  border:1px solid var(--rule);border-radius:var(--radius);padding:24px;
+  background:rgba(255,255,255,.52);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  transition:transform var(--t-card) var(--ease), border-color var(--t-card) var(--ease),
+             background var(--t-card) var(--ease), box-shadow var(--t-card) var(--ease);
+}
+.card:hover{
+  transform:translateY(-3px);border-color:rgba(255,255,255,.9);
+  background:rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-m);
+}
+.card__k{display:block;font-family:var(--font-m);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-4);margin-bottom:14px}
+.card__t{display:block;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:-.015em;margin-bottom:6px}
+.card__d{display:block;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.badge{
+  display:inline-block;border-radius:100px;padding:5px 13px;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  background:rgba(255,255,255,.6);border:1px solid var(--rule);color:var(--ink-2);
+  transition:background var(--t-micro) var(--ease),color var(--t-micro) var(--ease),border-color var(--t-micro) var(--ease);
+}
+.badge--fill{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ---- 8. THE STAGE — a framed window onto the pool ---------------------- */
 .stage{
-  position:relative;border:var(--line-dash);background:var(--g05);border-radius:var(--radius);
-  min-height:420px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  position:relative;border-radius:var(--radius-l);overflow:hidden;isolation:isolate;
+  height:440px;
+  background:linear-gradient(180deg,
+    #FBFCFC 0%, #FBFCFC 25.5%,
+    #F1F5F6 25.5%, #F1F5F6 42.2%,
+    #E7EFF1 42.2%, #E7EFF1 46%,
+    #D5EAF3 46%, #A7D0E3 81.5%, #84B7D4 100%);
+  border:1px solid rgba(255,255,255,.8);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-l);
 }
 .stage::before{
-  content:attr(data-label);position:absolute;top:12px;left:14px;z-index:3;
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--g50);
+  content:attr(data-label);position:absolute;top:18px;left:22px;z-index:5;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);
 }
-.stage>[data-swimmer]{width:100%;max-width:660px;margin:0 auto}
-.stage>[data-swimmer] .swimmer{height:auto}
+/* soft overhead light falling into the frame */
+.stage__glow{
+  position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:radial-gradient(72% 46% at 50% -8%, rgba(255,255,255,.75), rgba(255,255,255,0) 62%);
+}
+.stage__meta{
+  position:absolute;bottom:16px;left:16px;right:16px;z-index:5;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;pointer-events:none;
+}
+.stage__meta>span{
+  font-family:var(--font-m);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(255,255,255,.7);border-radius:100px;padding:7px 14px;
+  font-variant-numeric:tabular-nums;
+  transition:opacity var(--t-card) var(--ease);
+}
+.stage>[data-swimmer]{position:absolute;inset:0;z-index:1}
+.stage>[data-swimmer] .swimmer{width:100%;height:100%}
 .stage--sm{min-height:200px}
 .stage--xs{min-height:132px}
-.stage__meta{
-  position:absolute;bottom:12px;left:14px;right:14px;z-index:3;display:flex;justify-content:space-between;
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--g50);
-  pointer-events:none;
-}
+
+/* small placeholder wells (tiles, comparison cards) */
 .ph{
-  border:var(--line-dash);background:var(--g05);border-radius:var(--radius);
-  display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--g50);
-  min-height:96px;
+  position:relative;border-radius:var(--radius-s);overflow:hidden;
+  background:linear-gradient(180deg,#FBFCFC 0%,#F1F5F6 30%,#E7EFF1 40%,
+    #D5EAF3 40%,#A7D0E3 62%,#5C9EC0 88%,#2A6E92 100%);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+  display:flex;align-items:center;justify-content:center;min-height:96px;
 }
-.card{
-  border:var(--line);border-radius:var(--radius);padding:20px;background:var(--white);
-  transition:border-color var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease);
-}
-.card:hover{border-color:var(--g60);background:var(--g05)}
-.card__k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g50);margin-bottom:10px;display:block}
-.card__t{display:block;font-size:15px;font-weight:700;margin-bottom:6px}
-.card__d{display:block;font-size:13px;color:var(--g60);line-height:1.5}
-.badge{
-  display:inline-block;border:var(--line-strong);border-radius:100px;padding:3px 10px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-}
-.badge--fill{background:var(--black);color:var(--white)}
+.ph .swimmer,.tile__v .swimmer{width:100%;height:100%}
 
-/* ---- 7. HEADER / NAV ---------------------------------------------------- */
-.header{position:sticky;top:0;z-index:60;background:var(--white);border-bottom:var(--line)}
-.header__in{display:flex;align-items:center;gap:40px;height:72px}
+/* ---- 9. HEADER + PROGRESS ---------------------------------------------- */
+.header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(252,251,249,.72);
+  -webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);
+  border-bottom:1px solid var(--rule);
+}
+.header__in{display:flex;align-items:center;gap:44px;height:78px}
 .logo{
-  border:var(--line-strong);padding:8px 14px;border-radius:var(--radius);
-  font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;
+  font-family:var(--font-d);font-size:15px;font-weight:800;letter-spacing:-.02em;
+  display:inline-flex;align-items:center;gap:10px;white-space:nowrap;
 }
-.nav{display:flex;gap:8px;margin-left:auto}
+.logo::before{
+  content:"";width:26px;height:26px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 34% 30%, #fff, var(--water) 46%, var(--deep) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6), 0 2px 8px -3px rgba(23,90,126,.7);
+}
+.nav{display:flex;gap:4px;margin-left:auto}
 .nav a{
-  padding:10px 14px;border-radius:var(--radius);text-decoration:none;color:var(--g70);
-  font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
-  border:1px solid transparent;transition:color var(--dur-fast),border-color var(--dur-fast);
+  position:relative;padding:10px 16px;border-radius:100px;text-decoration:none;color:var(--ink-2);
+  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  transition:color var(--t-micro) var(--ease),background var(--t-micro) var(--ease);
 }
-.nav a:hover,.nav a.is-active{color:var(--black);border-color:var(--g30)}
-.header .btn{margin-left:8px}
+.nav a:hover{color:var(--ink);background:rgba(255,255,255,.6)}
+.nav a.is-active{color:var(--ink)}
+.nav a.is-active::after{
+  content:"";position:absolute;left:16px;right:16px;bottom:4px;height:1px;background:var(--deep);
+}
+.header .btn{margin-left:10px}
 
-/* progress strip under the header */
-.progress{border-bottom:var(--line);background:var(--white);position:sticky;top:72px;z-index:59}
-.progress__in{display:flex;align-items:center;gap:20px;height:44px}
-.progress__count{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--g60);white-space:nowrap}
-.progress__name{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;white-space:nowrap}
-.progress__dots{display:flex;align-items:center;gap:0;flex:1;min-width:0}
-.pdot{display:flex;align-items:center;gap:0;flex:1}
+.progress{
+  position:sticky;top:78px;z-index:59;
+  background:rgba(252,251,249,.62);
+  -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
+  border-bottom:1px solid var(--rule);
+}
+.progress__in{display:flex;align-items:center;gap:22px;height:46px}
+.progress__count{font-family:var(--font-m);font-size:11px;letter-spacing:.16em;color:var(--ink-3);
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.progress__name{font-family:var(--font-m);font-size:11px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.progress__dots{display:flex;align-items:center;flex:1;min-width:0}
+.pdot{display:flex;align-items:center;flex:1}
 .pdot__b{
-  width:9px;height:9px;border-radius:50%;border:1px solid var(--g50);background:var(--white);flex:0 0 auto;
-  transition:background var(--dur-fast),border-color var(--dur-fast),transform var(--dur-fast);
+  width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:var(--ink-4);
+  transition:background var(--t-card) var(--ease),transform var(--t-card) var(--ease),box-shadow var(--t-card) var(--ease);
 }
-.pdot__l{height:1px;background:var(--g20);flex:1}
-.pdot.is-done .pdot__b{background:var(--g50);border-color:var(--g50)}
-.pdot.is-current .pdot__b{background:var(--black);border-color:var(--black);transform:scale(1.5)}
-.progress__bar{width:120px;height:4px;border:1px solid var(--g40);border-radius:100px;overflow:hidden;flex:0 0 auto}
-.progress__fill{height:100%;background:var(--black);width:0%;transition:width var(--dur) var(--ease)}
+.pdot__l{height:1px;background:var(--rule);flex:1}
+.pdot.is-done .pdot__b{background:var(--water-2)}
+.pdot.is-current .pdot__b{
+  background:var(--deep);transform:scale(1.75);
+  box-shadow:0 0 0 5px rgba(23,90,126,.14);
+}
+.progress__bar{width:132px;height:3px;border-radius:100px;background:var(--rule);overflow:hidden;flex:0 0 auto}
+.progress__fill{height:100%;width:0%;border-radius:100px;
+  background:linear-gradient(90deg,var(--water-2),var(--deep));
+  transition:width var(--t-env) var(--ease)}
 
-/* ---- 8. HERO ------------------------------------------------------------ */
-.hero{min-height:88vh;display:flex;align-items:center;padding:56px 0 0;border-top:0}
-.hero__grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:56px;align-items:center;width:100%}
-.hero__stage{min-height:560px}
-.scrollcue{
-  display:flex;align-items:center;gap:12px;padding:28px 0 40px;
-  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--g50);
+/* ---- 10. HERO ----------------------------------------------------------- */
+.hero{min-height:calc(100vh - 124px);display:flex;align-items:center;padding:40px 0 0}
+.hero::before{display:none}
+.hero__grid{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:60px;align-items:center;width:100%}
+.hero__stage{height:500px}
+.stage[data-frame="tall"]{
+  background:linear-gradient(180deg,
+    #FBFCFC 0%, #FBFCFC 27.7%,
+    #F1F5F6 27.7%, #F1F5F6 37.7%,
+    #E7EFF1 37.7%, #E7EFF1 40%,
+    #D5EAF3 40%, #A7D0E3 61.3%, #5C9EC0 85%, #26688C 100%);
 }
-.scrollcue__line{width:1px;height:34px;background:var(--g40);position:relative;overflow:hidden}
-.scrollcue__line::after{content:"";position:absolute;inset:0;background:var(--black);animation:cue 2.2s var(--ease) infinite}
+.stage[data-frame="deep"]{
+  background:linear-gradient(180deg,
+    #F1F5F6 0%, #F1F5F6 16.2%,
+    #E7EFF1 16.2%, #E7EFF1 20%,
+    #D5EAF3 20%, #A7D0E3 55.5%, #5C9EC0 95.1%, #3F86AC 100%);
+}
+.hero .h-hero{margin-bottom:22px}
+.scrollcue{
+  display:flex;align-items:center;gap:14px;padding:34px 0 44px;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3);
+}
+.scrollcue__line{width:1px;height:40px;background:var(--rule-2);position:relative;overflow:hidden}
+.scrollcue__line::after{content:"";position:absolute;inset:0;background:var(--deep);animation:cue 2.6s var(--ease) infinite}
 @keyframes cue{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
 
-/* ---- 9. FLOW / SEQUENCE ------------------------------------------------- */
-.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:var(--line);border-radius:var(--radius);overflow:hidden}
+/* ---- 11. FLOW / SEQUENCE ------------------------------------------------ */
+.flow{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
 .flow--5{grid-template-columns:repeat(5,1fr)}
-.flow__item{text-align:left;width:100%;padding:20px;border-right:var(--line);position:relative;background:var(--white);transition:background var(--dur-fast)}
-.flow__item:last-child{border-right:0}
-.flow__item:hover{background:var(--g05)}
+.flow__item{
+  position:relative;text-align:left;width:100%;padding:22px;
+  transition:background var(--t-card) var(--ease);
+}
+.flow__item+.flow__item{border-left:1px solid var(--rule)}
 .flow__item::after{
-  content:"→";position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:2;
-  background:var(--white);color:var(--g50);font-size:13px;line-height:1;padding:2px;
+  content:"";position:absolute;right:-5px;top:50%;width:9px;height:9px;z-index:2;
+  border-top:1px solid var(--ink-4);border-right:1px solid var(--ink-4);
+  transform:translateY(-50%) rotate(45deg);
+  transition:border-color var(--t-card) var(--ease);
 }
-.flow__item:last-child::after{content:""}
-.flow__item.is-active{background:var(--g10)}
-.flow__item.is-active .flow__t{text-decoration:underline;text-underline-offset:4px}
-.flow__t{display:block;font-size:14px;font-weight:700;margin:12px 0 4px}
-.flow__d{display:block;font-size:12px;color:var(--g60);line-height:1.5}
+.flow__item:last-child::after{display:none}
+.flow__item:hover{background:rgba(255,255,255,.55)}
+.flow__item.is-active{background:rgba(255,255,255,.82);box-shadow:inset 0 2px 0 var(--deep)}
+.flow__t{display:block;font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:-.015em;margin:14px 0 5px}
+.flow__d{display:block;font-size:12.5px;color:var(--ink-2);line-height:1.55}
 
-/* ---- 10. STEPPER -------------------------------------------------------- */
-.steps{border-top:var(--line)}
-.step{width:100%;text-align:left;display:grid;grid-template-columns:52px 1fr;gap:16px;
-  padding:18px 12px;border-bottom:var(--line);align-items:start;
-  transition:background var(--dur-fast),padding-left var(--dur-fast)}
-.step:hover{background:var(--g05)}
-.step[aria-current="step"]{background:var(--g10);padding-left:20px}
-.step[aria-current="step"] .step__n{background:var(--black);color:var(--white);border-color:var(--black)}
+/* ---- 12. STEPPER -------------------------------------------------------- */
+.steps{display:flex;flex-direction:column;gap:6px}
+.step{
+  width:100%;text-align:left;display:grid;grid-template-columns:46px 1fr;gap:18px;align-items:start;
+  padding:18px 18px;border-radius:var(--radius);border:1px solid transparent;
+  transition:background var(--t-card) var(--ease),border-color var(--t-card) var(--ease),transform var(--t-card) var(--ease);
+}
+.step:hover{background:rgba(255,255,255,.55);border-color:var(--rule)}
+.step[aria-current="step"]{
+  background:rgba(255,255,255,.78);border-color:rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-m);
+}
 .step__n{
-  width:38px;height:38px;border:var(--line-strong);border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:background var(--dur-fast),color var(--dur-fast);
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.06em;color:var(--ink-3);
+  border:1px solid var(--rule-2);background:rgba(255,255,255,.5);
+  transition:background var(--t-card) var(--ease),color var(--t-card) var(--ease),border-color var(--t-card) var(--ease);
 }
-.step__t{display:block;font-size:15px;font-weight:700;margin-bottom:2px}
-.step__d{display:block;font-size:13px;color:var(--g60);max-width:40ch}
+.step[aria-current="step"] .step__n{background:var(--ink);color:#fff;border-color:var(--ink)}
+.step__t{display:block;font-family:var(--font-d);font-size:15.5px;font-weight:700;letter-spacing:-.015em;margin-bottom:3px}
+.step__d{display:block;font-size:13px;color:var(--ink-2);max-width:42ch;line-height:1.55}
 
-/* ---- 11. TABS ----------------------------------------------------------- */
-.tabs{display:flex;gap:0;border:var(--line-strong);border-radius:var(--radius);overflow:hidden;width:fit-content}
+/* ---- 13. TABS ----------------------------------------------------------- */
+.tabs{
+  display:inline-flex;padding:5px;border-radius:100px;width:fit-content;gap:4px;
+  background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-s);
+}
 .tab{
-  padding:12px 22px;border-right:var(--line-strong);background:var(--white);
-  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  transition:background var(--dur-fast),color var(--dur-fast);
+  padding:11px 22px;border-radius:100px;color:var(--ink-2);
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  transition:background var(--t-micro) var(--ease),color var(--t-micro) var(--ease),box-shadow var(--t-micro) var(--ease);
 }
-.tab:last-child{border-right:0}
-.tab:hover{background:var(--g10)}
-.tab[aria-selected="true"]{background:var(--black);color:var(--white)}
+.tab:hover{background:rgba(255,255,255,.7);color:var(--ink)}
+.tab[aria-selected="true"]{
+  background:linear-gradient(180deg,#1B2A36,var(--ink));color:#fff;
+  box-shadow:0 6px 16px -10px rgba(16,26,34,.9);
+}
 
-/* ---- 12. TILES ---------------------------------------------------------- */
-.tiles{display:grid;gap:12px}
+/* ---- 14. LEARNING TILES ------------------------------------------------- */
+.tiles{display:grid;gap:16px}
 .tiles--7{grid-template-columns:repeat(7,1fr)}
 .tiles--4{grid-template-columns:repeat(4,1fr)}
 .tile{
-  text-align:left;border:var(--line);border-radius:var(--radius);padding:14px;background:var(--white);
-  display:flex;flex-direction:column;gap:10px;
-  transition:border-color var(--dur-fast),background var(--dur-fast),transform var(--dur-fast);
+  position:relative;text-align:left;padding:16px;border-radius:var(--radius);
+  display:flex;flex-direction:column;gap:12px;
+  background:rgba(255,255,255,.56);
+  border:1px solid var(--rule);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  transition:transform var(--t-card) var(--ease),border-color var(--t-card) var(--ease),
+             background var(--t-card) var(--ease),box-shadow var(--t-card) var(--ease);
 }
-.tile:hover{border-color:var(--g60);transform:translateY(-2px)}
-.tile[aria-pressed="true"]{border-color:var(--black);background:var(--g10);box-shadow:inset 0 0 0 1px var(--black)}
-.tile__v{border:var(--line-dash);background:var(--g05);height:78px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.tile__t{display:block;font-size:13px;font-weight:700;letter-spacing:.02em}
-.tile__d{display:block;font-size:11px;color:var(--g60);line-height:1.45}
-.tile__n{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--g50)}
-.dots{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.24em;color:var(--g70)}
+.tile:hover{transform:translateY(-4px);background:rgba(255,255,255,.66);
+  border-color:rgba(255,255,255,.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-m)}
+.tile[aria-pressed="true"]{
+  transform:translateY(-4px) scale(1.022);
+  background:rgba(255,255,255,.8);
+  border-color:rgba(255,255,255,1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1), 0 0 0 1px rgba(23,90,126,.32), var(--shadow-m);
+}
+/* the selected tile is visually wired to the swimmer above it */
+.tile[aria-pressed="true"]::before{
+  content:"";position:absolute;left:50%;top:-17px;width:1px;height:17px;
+  background:linear-gradient(180deg,transparent,var(--deep));
+}
+.tile[aria-pressed="true"]::after{
+  content:"";position:absolute;left:50%;top:-20px;width:6px;height:6px;margin-left:-3px;
+  border-radius:50%;background:var(--deep);box-shadow:0 0 0 4px rgba(23,90,126,.16);
+}
+.tile__v{
+  position:relative;border-radius:var(--radius-s);overflow:hidden;height:92px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#FBFCFC 0%,#F1F5F6 30%,#E7EFF1 40%,
+    #D5EAF3 40%,#A7D0E3 62%,#5C9EC0 88%,#2A6E92 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.tile__t{display:block;font-family:var(--font-d);font-size:14px;font-weight:700;letter-spacing:-.015em}
+.tile__d{display:block;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.tile__n{display:block;font-family:var(--font-m);font-size:10px;letter-spacing:.18em;color:var(--ink-4)}
 
-/* ---- 13. TIMELINE (coordination) --------------------------------------- */
-.track{display:grid;grid-template-columns:88px 1fr;gap:16px;align-items:center;padding:12px 0;border-bottom:var(--line)}
-.track__k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g60)}
-.track__lane{position:relative;height:26px;border:var(--line);border-radius:100px;background:var(--g05);overflow:hidden}
-.track__lane::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--g20)}
+/* ---- 15. COORDINATION TRACKS ------------------------------------------- */
+.track{display:grid;grid-template-columns:92px 1fr;gap:20px;align-items:center;padding:12px 0}
+.track+.track{border-top:1px solid var(--rule)}
+.track__k{font-family:var(--font-m);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.track__lane{
+  position:relative;height:30px;border-radius:100px;overflow:hidden;
+  background:rgba(255,255,255,.45);border:1px solid var(--rule);
+  box-shadow:inset 0 1px 2px rgba(16,26,34,.05);
+}
+.track__lane::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
 .beat{
-  position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;
-  border:1px solid var(--g60);background:var(--white);transition:background var(--dur-fast),transform var(--dur-fast);
+  position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;
+  background:var(--ink-4);
+  transition:background var(--t-micro) var(--ease),transform var(--t-micro) var(--ease),box-shadow var(--t-micro) var(--ease);
 }
-.beat.is-hot{background:var(--black);border-color:var(--black);transform:scale(1.35)}
-.beat--wide{width:34px;border-radius:100px;margin-left:-17px}
-.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--black);left:0;z-index:2}
+.beat.is-hot{background:var(--deep);transform:scale(1.5);box-shadow:0 0 0 5px rgba(23,90,126,.16)}
+.beat--wide{width:38px;border-radius:100px;margin-left:-19px}
+.playhead{position:absolute;top:0;bottom:0;width:2px;left:0;z-index:2;
+  background:linear-gradient(180deg,rgba(23,90,126,0),var(--deep) 22%,var(--deep) 78%,rgba(23,90,126,0));}
 
-/* ---- 14. COMPARISON TABLE ---------------------------------------------- */
-.cmp th,.cmp td{border:var(--line);padding:14px 16px;text-align:left;vertical-align:top;font-size:13px}
-.cmp thead th{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;background:var(--g10)}
-.cmp tbody th{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--g60);width:150px;background:var(--g05)}
-.cmp td.is-active{background:var(--g10);font-weight:700}
-.cmp th.is-active{background:var(--black);color:var(--white)}
+/* ---- 16. COMPARISON TABLE ---------------------------------------------- */
+.cmp{
+  border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  box-shadow:inset 0 0 0 1px var(--rule), var(--shadow-s);
+}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;font-size:13.5px;
+  border-bottom:1px solid var(--rule);transition:background var(--t-card) var(--ease)}
+.cmp tr:last-child th,.cmp tr:last-child td{border-bottom:0}
+.cmp thead th{
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-2);background:rgba(255,255,255,.5);
+}
+.cmp tbody th{
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);width:158px;font-weight:400;
+}
+.cmp td.is-active{background:rgba(155,201,222,.2);color:var(--ink);font-weight:500}
+.cmp th.is-active{background:var(--ink);color:#fff}
 
-/* ---- 15. DO / AVOID ----------------------------------------------------- */
-.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:0;border:var(--line);border-radius:var(--radius);overflow:hidden}
-.vs__side{padding:16px}
-.vs__side--avoid{background:var(--g05)}
-.vs__mid{width:44px;display:flex;align-items:center;justify-content:center;border-left:var(--line);border-right:var(--line);
-  font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--g50);background:var(--g10)}
-.vs__k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--g60);margin-bottom:10px;display:block}
+/* ---- 17. DO / AVOID ----------------------------------------------------- */
+.vs{
+  display:grid;grid-template-columns:1fr auto 1fr;border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  transition:box-shadow var(--t-card) var(--ease),transform var(--t-card) var(--ease);
+}
+.vs:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-m)}
+.vs__side{padding:20px}
+.vs__side--avoid{background:rgba(16,26,34,.028)}
+.vs__mid{
+  width:46px;display:flex;align-items:center;justify-content:center;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+  font-family:var(--font-m);font-size:9.5px;letter-spacing:.12em;color:var(--ink-4);
+}
+.vs__k{display:block;font-family:var(--font-m);font-size:9.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
+.vs__side--avoid .vs__k{color:#A8705E}
 
-/* ---- 16. LEARNING PATH -------------------------------------------------- */
-.path{display:grid;grid-template-columns:repeat(9,1fr);gap:0;border:var(--line);border-radius:var(--radius);overflow:hidden}
+/* ---- 18. LEARNING PATH -------------------------------------------------- */
+.path{
+  display:grid;grid-template-columns:repeat(9,1fr);border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
 .path__i{
-  text-align:left;padding:18px 14px 20px;border-right:var(--line);background:var(--white);position:relative;
-  transition:background var(--dur-fast);display:flex;flex-direction:column;gap:8px;min-height:150px;
+  position:relative;text-align:left;padding:22px 16px 24px;min-height:164px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:background var(--t-card) var(--ease);
 }
-.path__i:last-child{border-right:0}
-.path__i:hover{background:var(--g05)}
-.path__i .marker{width:13px;height:13px;border-radius:50%;border:1px solid var(--g50);background:var(--white);position:relative;z-index:2}
-.path__i::before{content:"";position:absolute;left:21px;right:-21px;top:24px;height:1px;background:var(--g30);z-index:1}
+.path__i+.path__i{border-left:1px solid var(--rule)}
+.path__i:hover{background:rgba(255,255,255,.55)}
+.path__i .marker{
+  position:relative;z-index:2;width:11px;height:11px;border-radius:50%;background:var(--ink-4);
+  transition:background var(--t-card) var(--ease),box-shadow var(--t-card) var(--ease),transform var(--t-card) var(--ease);
+}
+.path__i::before{content:"";position:absolute;left:21px;right:-21px;top:27px;height:1px;background:var(--rule);z-index:1}
 .path__i:last-child::before{display:none}
-.path__i.is-done::before{background:var(--g60)}
-.path__i.is-done .marker{background:var(--g50);border-color:var(--g50)}
-.path__i.is-current{background:var(--g10)}
-.path__i.is-current .marker{background:var(--black);border-color:var(--black);box-shadow:0 0 0 4px var(--g20)}
-.path__i .state{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--g50)}
-.path__t{font-size:12.5px;font-weight:700;letter-spacing:.02em;line-height:1.25}
+.path__i.is-done::before{background:var(--water-2)}
+.path__i.is-done .marker{background:var(--water-2)}
+.path__i.is-current{background:rgba(255,255,255,.78)}
+.path__i.is-current .marker{background:var(--deep);transform:scale(1.25);box-shadow:0 0 0 5px rgba(23,90,126,.16)}
+.path__i .state{font-family:var(--font-m);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-4)}
+.path__i.is-current .state{color:var(--deep)}
+.path__t{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:-.012em;line-height:1.25}
 
-/* ---- 17. PRACTICE ------------------------------------------------------- */
-.plan{border:var(--line);border-radius:var(--radius);overflow:hidden}
-.plan__r{display:grid;grid-template-columns:96px 1fr 220px;gap:16px;align-items:center;padding:14px 18px;border-bottom:var(--line);transition:background var(--dur-fast)}
-.plan__r:hover{background:var(--g05)}
-.plan__r.is-total{background:var(--g10);border-bottom:0;font-weight:700}
-.plan__min{font-family:var(--mono);font-size:12px;letter-spacing:.1em}
-.plan__bar{height:8px;border:1px solid var(--g40);border-radius:100px;overflow:hidden;background:var(--white)}
-.plan__bar i{display:block;height:100%;background:var(--g50)}
+/* ---- 19. PRACTICE PLAN -------------------------------------------------- */
+.plan{
+  border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.plan__r{display:grid;grid-template-columns:100px 1fr 240px;gap:20px;align-items:center;
+  padding:16px 22px;transition:background var(--t-card) var(--ease)}
+.plan__r+.plan__r{border-top:1px solid var(--rule)}
+.plan__r:hover{background:rgba(255,255,255,.55)}
+.plan__r.is-total{background:rgba(155,201,222,.18);font-weight:500}
+.plan__min{font-family:var(--font-m);font-size:12px;letter-spacing:.1em;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.plan__bar{height:6px;border-radius:100px;background:rgba(16,26,34,.07);overflow:hidden}
+.plan__bar i{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,var(--water),var(--water-2))}
+.plan__r.is-total .plan__bar i{background:linear-gradient(90deg,var(--water-2),var(--deep))}
 
-/* ---- 18. ACCORDION ------------------------------------------------------ */
-.acc{border-top:var(--line)}
-.acc__i{border-bottom:var(--line)}
-.acc__b{width:100%;display:flex;align-items:center;justify-content:space-between;gap:24px;
-  padding:22px 4px;text-align:left;font-size:16px;font-weight:700;transition:padding-left var(--dur-fast)}
-.acc__b:hover{padding-left:12px}
-.acc__b .sign{font-family:var(--mono);font-size:18px;color:var(--g60);transition:transform var(--dur-fast)}
-.acc__b[aria-expanded="true"] .sign{transform:rotate(45deg)}
-.acc__p{overflow:hidden;height:0;transition:height var(--dur) var(--ease)}
-.acc__p>div{padding:0 4px 24px;color:var(--g70);max-width:70ch;font-size:14px}
+/* ---- 20. ACCORDION ------------------------------------------------------ */
+.acc{display:flex;flex-direction:column}
+.acc__i{border-top:1px solid var(--rule)}
+.acc__i:last-child{border-bottom:1px solid var(--rule)}
+.acc__b{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:28px;
+  padding:26px 6px;text-align:left;
+  font-family:var(--font-d);font-size:17px;font-weight:700;letter-spacing:-.02em;
+  transition:padding-left var(--t-card) var(--ease),color var(--t-card) var(--ease);
+}
+.acc__b:hover{padding-left:14px;color:var(--deep)}
+.acc__b .sign{
+  flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--rule-2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:15px;font-weight:400;color:var(--ink-3);line-height:1;
+  transition:transform var(--t-card) var(--ease),background var(--t-card) var(--ease),color var(--t-card) var(--ease);
+}
+.acc__b[aria-expanded="true"] .sign{transform:rotate(135deg);background:var(--ink);color:#fff;border-color:var(--ink)}
+.acc__p{overflow:hidden;height:0;transition:height var(--t-card) var(--ease)}
+.acc__p>div{padding:0 6px 28px;color:var(--ink-2);max-width:66ch;font-size:14.5px;line-height:1.65}
 
-/* ---- 19. SAFETY --------------------------------------------------------- */
-.safety{border:2px solid var(--black);border-radius:var(--radius);padding:40px}
-.safety .card{border-color:var(--g40)}
+/* ---- 21. SAFETY --------------------------------------------------------- */
+.safety{
+  border-radius:var(--radius-l);padding:52px;
+  background:rgba(255,255,255,.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-l);
+}
+.safety .card{background:rgba(255,255,255,.5)}
 
-/* ---- 20. FOOTER --------------------------------------------------------- */
-.footer{border-top:var(--line);padding:48px 0;color:var(--g60);font-size:12px}
-.footer__in{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap}
+/* ---- 22. FOOTER --------------------------------------------------------- */
+.footer{border-top:1px solid var(--rule);padding:56px 0;color:var(--ink-3);font-size:12.5px}
+.footer__in{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap}
 
-/* ---- 21. SCROLL REVEAL -------------------------------------------------- */
-.reveal{opacity:0;transform:translateY(14px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+/* ---- 23. SCROLL REVEAL -------------------------------------------------- */
+.reveal{opacity:0;transform:translateY(20px);
+  transition:opacity var(--t-char) var(--ease),transform var(--t-char) var(--ease)}
 .reveal.is-in{opacity:1;transform:none}
 
 /* =========================================================================
-   22. SWIMMER VISUAL SYSTEM
-   ONE reusable SVG figure. Every pose = a set of CSS custom properties.
-   Because the parts transition their `transform`, any state change is a
-   continuous movement of the SAME swimmer — never a swap of two images.
+   24. THE SWIMMER
+   One articulated body, cloned everywhere. Twelve independently rotatable
+   joints; each pose is a set of custom properties, and every joint
+   transitions its own transform — so a state change is the body performing
+   the movement, never a swap between two pictures.
    ========================================================================= */
 .swimmer{
   width:100%;height:100%;display:block;
-  /* pose variables — overridden by .swimmer--* state classes */
   --x:0px; --y:0px; --rot:0deg; --flip:1; --scale:1;
-  --trunk:0deg; --head:0deg;
-  --armF:0deg; --elbF:0deg; --armB:0deg; --elbB:0deg;
-  --legF:0deg; --kneeF:0deg; --legB:0deg; --kneeB:0deg;
-  --bubbles:0; --splash:0; --annot:0; --water:1; --wall:0; --trail:0;
+  --trunk:0deg; --head:0deg; --face:0deg;
+  --armF:0deg; --elbF:0deg; --wriF:0deg;
+  --armB:0deg; --elbB:0deg; --wriB:0deg;
+  --legF:0deg; --kneeF:0deg; --ankF:10deg;
+  --legB:0deg; --kneeB:0deg; --ankB:10deg;
+  --bubbles:0; --annot:0; --trail:0; --wall:0; --ripple:0; --lit:1;
+  --dur:var(--t-char);
 }
 .sw-figure{
   transform:translate(var(--x),var(--y)) rotate(var(--rot)) scale(var(--scale),calc(var(--scale) * var(--flip)));
-  transform-origin:262px 131px;
+  transform-origin:620px 300px;
   transition:transform var(--dur) var(--ease);
 }
-.sw-trunk{transform:rotate(var(--trunk));transform-origin:262px 131px;transition:transform var(--dur) var(--ease)}
-.sw-head{transform:rotate(var(--head));transform-origin:186px 131px;transition:transform var(--dur) var(--ease)}
-.sw-armF{transform:rotate(var(--armF));transform-origin:186px 122px;transition:transform var(--dur) var(--ease)}
-.sw-armB{transform:rotate(var(--armB));transform-origin:186px 140px;transition:transform var(--dur) var(--ease)}
-.sw-elbF{transform:rotate(var(--elbF));transform-origin:146px 122px;transition:transform var(--dur) var(--ease)}
-.sw-elbB{transform:rotate(var(--elbB));transform-origin:146px 140px;transition:transform var(--dur) var(--ease)}
-.sw-legF{transform:rotate(var(--legF));transform-origin:262px 127px;transition:transform var(--dur) var(--ease)}
-.sw-legB{transform:rotate(var(--legB));transform-origin:262px 136px;transition:transform var(--dur) var(--ease)}
-.sw-kneeF{transform:rotate(var(--kneeF));transform-origin:312px 127px;transition:transform var(--dur) var(--ease)}
-.sw-kneeB{transform:rotate(var(--kneeB));transform-origin:312px 136px;transition:transform var(--dur) var(--ease)}
+.sw-trunk{transform:rotate(var(--trunk));transform-origin:620px 300px;transition:transform var(--dur) var(--ease)}
+.sw-head {transform:rotate(var(--head)); transform-origin:430px 296px;transition:transform var(--dur) var(--ease)}
+.sw-skull{transform:rotate(var(--face)); transform-origin:368px 288px;transition:transform var(--dur) var(--ease)}
+.sw-armF {transform:rotate(var(--armF)); transform-origin:430px 278px;transition:transform var(--dur) var(--ease)}
+.sw-elbF {transform:rotate(var(--elbF)); transform-origin:340px 278px;transition:transform var(--dur) var(--ease)}
+.sw-wriF {transform:rotate(var(--wriF)); transform-origin:262px 278px;transition:transform var(--dur) var(--ease)}
+.sw-armB {transform:rotate(var(--armB)); transform-origin:430px 312px;transition:transform var(--dur) var(--ease)}
+.sw-elbB {transform:rotate(var(--elbB)); transform-origin:340px 312px;transition:transform var(--dur) var(--ease)}
+.sw-wriB {transform:rotate(var(--wriB)); transform-origin:262px 312px;transition:transform var(--dur) var(--ease)}
+.sw-legF {transform:rotate(var(--legF)); transform-origin:620px 288px;transition:transform var(--dur) var(--ease)}
+.sw-kneeF{transform:rotate(var(--kneeF));transform-origin:742px 288px;transition:transform var(--dur) var(--ease)}
+.sw-ankF {transform:rotate(var(--ankF)); transform-origin:858px 288px;transition:transform var(--dur) var(--ease)}
+.sw-legB {transform:rotate(var(--legB)); transform-origin:620px 312px;transition:transform var(--dur) var(--ease)}
+.sw-kneeB{transform:rotate(var(--kneeB));transform-origin:742px 312px;transition:transform var(--dur) var(--ease)}
+.sw-ankB {transform:rotate(var(--ankB)); transform-origin:858px 312px;transition:transform var(--dur) var(--ease)}
 
-/* strokes / fills — grayscale line illustration only */
-.sw-ink{stroke:var(--black);stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
-.sw-ink--back{stroke:var(--g50);stroke-width:4}
-.sw-ink--torso{stroke-width:8}
-.sw-head circle{fill:var(--white);stroke:var(--black);stroke-width:4.5}
-.sw-water rect{fill:var(--g10)}
-.sw-water line{stroke:var(--g40);stroke-width:1}
-.sw-waterline{stroke:var(--g60);stroke-width:1.5;stroke-dasharray:6 5}
-.sw-water,.sw-waterline{opacity:var(--water);transition:opacity var(--dur) var(--ease)}
-.sw-bubbles{opacity:var(--bubbles);transition:opacity var(--dur) var(--ease)}
-.sw-bubbles circle{fill:none;stroke:var(--g60);stroke-width:1.5}
+/* materials — the far side of the body sits back in the water */
+/* A light rim keeps overlapping limbs legible — the near arm can cross the
+   head without the silhouette turning into one mass. */
+.sw-skin,.sw-suit,.sw-cap{stroke:rgba(255,255,255,.62);stroke-width:2.6;stroke-linejoin:round}
+.sw-skin{fill:url(#gSkin) #E4C0A2}
+.sw-suit{fill:url(#gSuit) #1F2C38}
+.sw-cap {fill:url(#gCap) #2B3E4E}
+.sw-goggle{fill:#16222C;opacity:.88}
+.sw-strap{fill:none;stroke:#16222C;stroke-width:4;opacity:.7;stroke-linecap:round}
+.sw-back .sw-skin{fill:url(#gSkinBack) #BE9070}
+.sw-back .sw-suit{fill:#3D4F60}
+.sw-back .sw-skin,.sw-back .sw-suit{stroke:rgba(255,255,255,.3);stroke-width:2}
+.sw-back{opacity:.82}
+.sw-hi{fill:#fff;opacity:.3;stroke:none}
+
+/* environment inside the frame */
+.sw-waterline{opacity:.9}
+.sw-floor line{stroke:rgba(10,48,73,.16);stroke-width:2}
+.sw-rope circle{fill:rgba(255,255,255,.5)}
+.sw-rope circle:nth-child(even){fill:rgba(23,90,126,.22)}
 .sw-wall{opacity:var(--wall);transition:opacity var(--dur) var(--ease)}
-.sw-wall rect{fill:var(--g20);stroke:var(--g60);stroke-width:1}
+.sw-wall rect{fill:url(#gWall)}
+.sw-wall line{stroke:rgba(255,255,255,.5);stroke-width:1.5}
+
+/* caustic light playing across the body */
+.sw-caustic{opacity:calc(var(--lit) * .5);mix-blend-mode:overlay;filter:blur(9px);pointer-events:none}
+.sw-caustic ellipse{fill:#fff}
+.swimmer .sw-caustic{animation:bodyCaustic 14s ease-in-out infinite alternate}
+@keyframes bodyCaustic{
+  from{transform:translate3d(-10px,-4px,0) scale(1)}
+  to  {transform:translate3d(14px,6px,0) scale(1.12)}
+}
+
+/* motion streaks — the water the swimmer has just moved through */
 .sw-trail{opacity:var(--trail);transition:opacity var(--dur) var(--ease)}
-.sw-trail line{stroke:var(--g40);stroke-width:2;stroke-dasharray:4 6}
-.sw-annot{opacity:var(--annot);transition:opacity var(--dur) var(--ease)}
-.sw-annot line{stroke:var(--g50);stroke-width:1;stroke-dasharray:3 3}
-.sw-annot text{font-family:var(--mono);font-size:11px;letter-spacing:.12em;fill:var(--g60)}
-.sw-annot circle{fill:var(--black)}
-.sw-cap{font-family:var(--mono);font-size:11px;letter-spacing:.14em;fill:var(--g50)}
+.sw-trail path{fill:none;stroke:rgba(255,255,255,.72);stroke-linecap:round}
 
-/* live bubble rise, only while the breathing state is on */
-.swimmer--bubbles .sw-bubbles circle{animation:rise 2.4s var(--ease) infinite}
-.swimmer--bubbles .sw-bubbles circle:nth-child(2){animation-delay:.4s}
-.swimmer--bubbles .sw-bubbles circle:nth-child(3){animation-delay:.8s}
-.swimmer--bubbles .sw-bubbles circle:nth-child(4){animation-delay:1.2s}
-.swimmer--bubbles .sw-bubbles circle:nth-child(5){animation-delay:1.6s}
-@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-58px);opacity:0}}
+/* exhaled air */
+.sw-bubbles{opacity:var(--bubbles);transition:opacity var(--dur) var(--ease)}
+.sw-bubbles circle{fill:rgba(255,255,255,.72);stroke:rgba(255,255,255,.9);stroke-width:1.5}
+.swimmer--bubbles .sw-bubbles circle{animation:rise 3.4s var(--ease-soft) infinite}
+.swimmer--bubbles .sw-bubbles circle:nth-child(2){animation-delay:.5s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(3){animation-delay:1s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(4){animation-delay:1.5s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(5){animation-delay:2s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(6){animation-delay:2.5s}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}
+  18%{opacity:1}100%{transform:translateY(-120px) scale(1.15);opacity:0}}
 
-/* flutter kick loop */
-.swimmer--kicking .sw-legF{animation:kickF 1.05s ease-in-out infinite}
-.swimmer--kicking .sw-legB{animation:kickB 1.05s ease-in-out infinite}
-.swimmer--kicking .sw-kneeF{animation:kneeF 1.05s ease-in-out infinite}
-@keyframes kickF{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(16deg)}}
-@keyframes kickB{0%,100%{transform:rotate(16deg)}50%{transform:rotate(-16deg)}}
-@keyframes kneeF{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-14deg)}}
+/* the surface answers the body */
+.sw-ripple{opacity:0}
+.sw-ripple ellipse{fill:none;stroke:rgba(255,255,255,.9);stroke-width:2}
+.swimmer--entering .sw-ripple,.swimmer--facein .sw-ripple,.swimmer--bubbles .sw-ripple,
+.swimmer--breathing .sw-ripple{opacity:1}
+.swimmer--entering .sw-ripple ellipse,.swimmer--facein .sw-ripple ellipse,
+.swimmer--bubbles .sw-ripple ellipse,.swimmer--breathing .sw-ripple ellipse{
+  animation:ripple 4.2s var(--ease-soft) infinite;transform-origin:center;
+}
+.sw-ripple ellipse:nth-child(2){animation-delay:1.4s}
+.sw-ripple ellipse:nth-child(3){animation-delay:2.8s}
+@keyframes ripple{0%{transform:scale(.35);opacity:0}
+  22%{opacity:.85}100%{transform:scale(1.9);opacity:0}}
 
-/* dolphin kick — legs move together */
-.swimmer--dolphin .sw-legF,.swimmer--dolphin .sw-legB{animation:dolphin 1.2s ease-in-out infinite}
-@keyframes dolphin{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(22deg)}}
+/* annotation layer */
+.sw-annot{opacity:var(--annot);transition:opacity var(--t-card) var(--ease)}
+.sw-annot line{stroke:rgba(16,26,34,.32);stroke-width:1.5;stroke-dasharray:2 6;stroke-linecap:round}
+.sw-annot circle{fill:var(--deep)}
+.sw-annot rect{fill:rgba(255,255,255,.82);stroke:rgba(255,255,255,.9)}
+.sw-annot text{font-family:var(--font-m);font-size:17px;letter-spacing:.16em;fill:var(--ink-2)}
 
-/* gentle idle bob for the hero / closing swimmer */
-.swimmer--idle .sw-figure{animation:bob 5.5s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(-8px,-9px) rotate(-1.6deg)}}
+/* continuous loops */
+.swimmer--kicking .sw-legF{animation:kickF 1.15s ease-in-out infinite}
+.swimmer--kicking .sw-legB{animation:kickB 1.15s ease-in-out infinite}
+.swimmer--kicking .sw-kneeF{animation:kneeF 1.15s ease-in-out infinite}
+.swimmer--kicking .sw-kneeB{animation:kneeB 1.15s ease-in-out infinite}
+@keyframes kickF{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(17deg)}}
+@keyframes kickB{0%,100%{transform:rotate(17deg)}50%{transform:rotate(-15deg)}}
+@keyframes kneeF{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-16deg)}}
+@keyframes kneeB{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(14deg)}}
+.swimmer--dolphin .sw-legF,.swimmer--dolphin .sw-legB{animation:dolphin 1.5s ease-in-out infinite}
+.swimmer--dolphin .sw-kneeF,.swimmer--dolphin .sw-kneeB{animation:dolphinKnee 1.5s ease-in-out infinite}
+@keyframes dolphin{0%,100%{transform:rotate(-17deg)}50%{transform:rotate(21deg)}}
+@keyframes dolphinKnee{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-14deg)}}
+.swimmer--idle .sw-figure{animation:bob 9s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
+  50%{transform:translate3d(-14px,-16px,0) rotate(-1.1deg)}}
 
-/* ---- 23. POSE LIBRARY (the .swimmer--* state classes) ------------------ */
-.swimmer--standing{--trunk:90deg;--legF:88deg;--legB:92deg;--armF:172deg;--armB:190deg;--elbF:12deg;--scale:.92;--y:4px}
-.swimmer--entering{--trunk:74deg;--legF:70deg;--legB:104deg;--kneeF:26deg;--armF:148deg;--armB:206deg;--elbF:26deg;--scale:.92;--y:2px}
-.swimmer--comfortable{--trunk:56deg;--legF:74deg;--legB:96deg;--armF:118deg;--armB:152deg;--elbF:18deg;--scale:.92;--y:4px}
-.swimmer--facein{--trunk:-16deg;--legF:82deg;--legB:96deg;--armF:-8deg;--armB:16deg;--scale:.92;--y:2px}
-.swimmer--bubbles{--trunk:-24deg;--legF:80deg;--legB:98deg;--armF:-12deg;--armB:14deg;--bubbles:1;--scale:.92;--y:2px}
-.swimmer--breathing{--trunk:22deg;--head:-26deg;--legF:84deg;--legB:96deg;--armF:-6deg;--armB:22deg;--scale:.92;--y:2px}
+/* ---- 25. POSE LIBRARY --------------------------------------------------- */
+.swimmer--standing   {--face:-88deg;--trunk:90deg;--legF:85deg;--legB:95deg;--armF:166deg;--armB:198deg;--elbF:18deg;--elbB:-16deg;--ankF:-6deg;--ankB:-4deg;--scale:.97;--y:4px}
+.swimmer--entering   {--face:-62deg;--trunk:74deg;--legF:70deg;--legB:104deg;--kneeF:24deg;--armF:142deg;--armB:212deg;--elbF:30deg;--elbB:-26deg;--ankF:-4deg;--scale:.97;--y:2px}
+.swimmer--comfortable{--face:-46deg;--trunk:56deg;--legF:71deg;--legB:99deg;--armF:112deg;--armB:156deg;--elbF:24deg;--elbB:-20deg;--scale:.97;--y:4px}
+.swimmer--facein     {--face:10deg;--trunk:-14deg;--legF:78deg;--legB:100deg;--armF:-12deg;--armB:20deg;--elbF:-8deg;--elbB:8deg;--scale:.97;--y:2px}
+.swimmer--bubbles    {--face:14deg;--trunk:-22deg;--legF:76deg;--legB:102deg;--armF:-16deg;--armB:18deg;--elbF:-6deg;--elbB:8deg;--bubbles:1;--scale:.97;--y:2px}
+.swimmer--breathing  {--face:-34deg;--trunk:22deg;--head:26deg;--legF:82deg;--legB:98deg;--armF:-6deg;--armB:26deg;--elbF:-14deg;--elbB:10deg;--scale:.97;--y:2px}
 
-.swimmer--floating{--trunk:0deg;--legF:0deg;--legB:0deg;--armF:-4deg;--armB:4deg}
-.swimmer--floatback{--flip:-1;--trunk:0deg;--legF:2deg;--legB:-2deg;--armF:-10deg;--armB:10deg}
-.swimmer--floatstar{--trunk:0deg;--legF:-26deg;--legB:26deg;--armF:-34deg;--armB:34deg;--elbF:8deg}
+.swimmer--floating   {--trunk:0deg;--legF:1deg;--legB:-1deg;--armF:-15deg;--armB:13deg;--elbF:-6deg;--elbB:6deg;--ankF:12deg;--ankB:10deg;--lit:1}
+.swimmer--floatback  {--flip:-1;--trunk:0deg;--legF:2deg;--legB:-2deg;--armF:-10deg;--armB:10deg;--elbF:-8deg;--ankF:12deg}
+.swimmer--floatstar  {--trunk:0deg;--legF:-24deg;--legB:26deg;--armF:-32deg;--armB:34deg;--elbF:10deg;--elbB:-8deg;--ankF:8deg;--ankB:8deg}
 
-.swimmer--normal{--trunk:-12deg;--head:-30deg;--legF:26deg;--legB:32deg;--kneeF:-46deg;--kneeB:-38deg;--armF:-16deg;--armB:12deg;--elbF:-26deg}
-.swimmer--streamlined{--trunk:0deg;--head:0deg;--legF:0deg;--legB:0deg;--kneeF:0deg;--kneeB:0deg;--armF:0deg;--armB:0deg;--elbF:0deg;--elbB:0deg;--trail:1}
+.swimmer--normal     {--trunk:-11deg;--head:30deg;--legF:24deg;--legB:30deg;--kneeF:-44deg;--kneeB:-36deg;--armF:-14deg;--armB:12deg;--elbF:-24deg;--ankF:-16deg;--ankB:-12deg}
+.swimmer--streamlined{--trunk:0deg;--head:0deg;--legF:0deg;--legB:0deg;--kneeF:0deg;--kneeB:0deg;--armF:0deg;--armB:0deg;--elbF:0deg;--elbB:0deg;--ankF:14deg;--ankB:14deg;--trail:1}
 
-.swimmer--wall{--rot:0deg;--trunk:8deg;--legF:64deg;--legB:70deg;--kneeF:-96deg;--kneeB:-92deg;--armF:-8deg;--armB:6deg;--wall:1;--x:56px}
-.swimmer--push{--trunk:2deg;--legF:26deg;--legB:30deg;--kneeF:-38deg;--kneeB:-34deg;--armF:-4deg;--armB:2deg;--wall:1;--x:30px}
-.swimmer--extend{--trunk:0deg;--legF:6deg;--legB:8deg;--armF:0deg;--armB:0deg;--wall:1;--x:6px;--trail:1}
-.swimmer--gliding{--trunk:0deg;--legF:0deg;--legB:0deg;--armF:0deg;--armB:0deg;--x:-24px;--trail:1}
-.swimmer--glidelong{--trunk:0deg;--legF:0deg;--legB:0deg;--armF:0deg;--armB:0deg;--x:-52px;--trail:1}
+.swimmer--wall       {--trunk:8deg;--legF:62deg;--legB:68deg;--kneeF:-94deg;--kneeB:-90deg;--armF:-8deg;--armB:6deg;--ankF:-30deg;--ankB:-28deg;--wall:1;--x:150px}
+.swimmer--push       {--trunk:3deg;--legF:24deg;--legB:28deg;--kneeF:-36deg;--kneeB:-32deg;--armF:-4deg;--armB:2deg;--ankF:-6deg;--wall:1;--x:82px}
+.swimmer--extend     {--trunk:0deg;--legF:5deg;--legB:7deg;--armF:0deg;--armB:0deg;--ankF:12deg;--wall:1;--x:18px;--trail:1}
+.swimmer--gliding    {--trunk:0deg;--legF:0deg;--legB:0deg;--armF:0deg;--armB:0deg;--ankF:14deg;--ankB:14deg;--x:-64px;--trail:1}
+.swimmer--glidelong  {--trunk:0deg;--legF:0deg;--legB:0deg;--armF:0deg;--armB:0deg;--ankF:14deg;--ankB:14deg;--x:-142px;--trail:1}
 
-.swimmer--kicking{--trunk:0deg;--armF:0deg;--armB:0deg;--trail:1}
-.swimmer--kickstraight{--trunk:0deg;--legF:0deg;--legB:0deg;--kneeF:0deg;--kneeB:0deg;--armF:0deg;--armB:0deg;--trail:1}
-.swimmer--kickdown{--trunk:0deg;--legF:22deg;--legB:-14deg;--kneeF:-16deg;--kneeB:6deg;--armF:0deg;--armB:0deg;--trail:1}
-.swimmer--kickup{--trunk:0deg;--legF:-18deg;--legB:20deg;--kneeF:8deg;--kneeB:-14deg;--armF:0deg;--armB:0deg;--trail:1}
-.swimmer--freestyle{--trunk:0deg;--armF:-14deg;--armB:156deg;--elbB:-18deg;--trail:1}
-.swimmer--breaststroke{--trunk:0deg;--armF:-6deg;--armB:6deg;--legF:-12deg;--legB:12deg;--trail:1}
-.swimmer--backstroke{--flip:-1;--trunk:0deg;--armF:-12deg;--armB:158deg;--elbB:-16deg;--trail:1}
-.swimmer--butterfly{--trunk:0deg;--armF:-166deg;--armB:-158deg;--legF:-14deg;--legB:-10deg;--trail:1}
+.swimmer--kicking      {--trunk:0deg;--armF:-9deg;--armB:8deg;--ankF:14deg;--ankB:14deg;--trail:1}
+.swimmer--kickstraight {--trunk:0deg;--legF:0deg;--legB:0deg;--kneeF:0deg;--kneeB:0deg;--armF:-9deg;--armB:8deg;--ankF:14deg;--trail:1}
+.swimmer--kickdown     {--trunk:0deg;--legF:21deg;--legB:-13deg;--kneeF:-14deg;--kneeB:8deg;--armF:-9deg;--armB:8deg;--ankF:16deg;--ankB:4deg;--trail:1}
+.swimmer--kickup       {--trunk:0deg;--legF:-17deg;--legB:19deg;--kneeF:9deg;--kneeB:-13deg;--armF:-9deg;--armB:8deg;--ankF:4deg;--ankB:16deg;--trail:1}
+
+.swimmer--freestyle    {--trunk:0deg;--armF:-14deg;--armB:156deg;--elbF:-10deg;--elbB:-26deg;--ankF:14deg;--ankB:14deg;--trail:1}
+.swimmer--breaststroke {--trunk:0deg;--armF:-6deg;--armB:6deg;--elbF:-12deg;--elbB:12deg;--legF:-11deg;--legB:11deg;--kneeF:-14deg;--kneeB:14deg;--trail:1}
+.swimmer--backstroke   {--flip:-1;--trunk:0deg;--armF:-12deg;--armB:158deg;--elbF:-8deg;--elbB:-24deg;--ankF:14deg;--trail:1}
+.swimmer--butterfly    {--trunk:0deg;--armF:-164deg;--armB:-156deg;--elbF:-18deg;--elbB:-18deg;--legF:-13deg;--legB:-9deg;--trail:1}
+
+.swimmer--headhigh   {--trunk:-13deg;--head:40deg;--legF:32deg;--legB:36deg;--kneeF:-28deg;--kneeB:-24deg;--ankF:-14deg}
+.swimmer--hipssink   {--trunk:-19deg;--legF:38deg;--legB:42deg;--kneeF:-10deg;--ankF:-10deg}
+.swimmer--bentknees  {--legF:7deg;--legB:11deg;--kneeF:-70deg;--kneeB:-62deg;--ankF:-24deg;--ankB:-20deg}
+.swimmer--heldbreath {--trunk:0deg;--head:13deg;--legF:5deg;--legB:9deg;--armF:-11deg;--armB:10deg;--bubbles:0}
+.swimmer--exhaling   {--trunk:0deg;--legF:2deg;--legB:6deg;--armF:-11deg;--armB:10deg;--bubbles:1;--ankF:12deg}
 
 .swimmer--annotated{--annot:1}
 .swimmer--annotated.swimmer--normal{--annot:0}
-.swimmer--mini .sw-annot,.swimmer--mini .sw-water line{display:none}
-.swimmer--mini .sw-water rect{opacity:.6}
+.swimmer--mini .sw-annot,.swimmer--mini .sw-rope,.swimmer--mini .sw-floor{display:none}
 
-/* mistake poses used in the DO / AVOID comparison */
-.swimmer--headhigh{--trunk:-14deg;--head:-40deg;--legF:34deg;--legB:38deg;--kneeF:-30deg}
-.swimmer--hipssink{--trunk:-20deg;--legF:40deg;--legB:44deg}
-.swimmer--bentknees{--legF:8deg;--legB:12deg;--kneeF:-72deg;--kneeB:-64deg}
-.swimmer--heldbreath{--trunk:0deg;--head:-14deg;--legF:6deg;--legB:10deg;--bubbles:0}
-.swimmer--exhaling{--trunk:0deg;--legF:2deg;--legB:6deg;--bubbles:1}
-
-/* ---- 24. REDUCED MOTION ------------------------------------------------- */
+/* ---- 26. REDUCED MOTION ------------------------------------------------- */
 @media (prefers-reduced-motion: reduce){
-  :root{--dur:1ms;--dur-fast:1ms}
+  :root{--t-micro:1ms;--t-card:1ms;--t-char:1ms;--t-env:1ms}
   html{scroll-behavior:auto}
   .swimmer *,.sw-figure{transition:none!important;animation:none!important}
-  .scrollcue__line::after{animation:none}
+  .stage::after,.rays,.scrollcue__line::after,.sw-caustic{animation:none!important}
   .reveal{opacity:1;transform:none}
+  .btn:hover,.card:hover,.tile:hover,.vs:hover{transform:none}
 }
 
-/* ---- 25. VIEWPORT RANGE 1280 → 1600 ------------------------------------ */
-@media (max-width:1420px){:root{--gutter:48px}.h-hero{font-size:66px}.h-1{font-size:38px}}
+/* ---- 27. VIEWPORT RANGE 1280 → 1600 ------------------------------------ */
+@media (max-width:1420px){:root{--gutter:48px}}
 @media (max-width:1320px){
   .tiles--7{grid-template-columns:repeat(4,1fr)}
   .path{grid-template-columns:repeat(5,1fr)}
-  .path__i:nth-child(5){border-right:0}
+  .path__i:nth-child(5)::before{display:none}
 }
-/* Structure is deliberately linear + semantic so an M-web pass can simply
-   collapse these grids to a single column later. Not designed yet. */
+/* Mobile is not designed yet — the grids simply stack so the structure
+   survives. The M-web pass is a separate exercise.                        */
 @media (max-width:900px){
-  .split,.split--rev,.g-2,.g-3,.g-4,.g-5,.hero__grid,.flow,.flow--5,.tiles--7,.tiles--4,.path{grid-template-columns:1fr}
+  .split,.split--rev,.g-2,.g-3,.g-4,.g-5,.hero__grid,.flow,.flow--5,
+  .tiles--7,.tiles--4,.path{grid-template-columns:1fr}
+  .plan__r{grid-template-columns:80px 1fr}
+  .plan__bar{display:none}
 }
 </style>
 </head>
@@ -478,91 +851,223 @@ table{border-collapse:collapse;width:100%}
 <a class="skip" href="#hero">Skip to content</a>
 
 <!-- =======================================================================
-     REUSABLE SWIMMER — cloned by JS into every [data-swimmer] container.
-     One character. Every section shows the SAME figure in a different pose.
+     THE ENVIRONMENT — one body of water behind the whole document.
+     ======================================================================= -->
+<div id="env" aria-hidden="true">
+  <div class="rays"></div>
+  <canvas id="env-canvas"></canvas>
+</div>
+
+<!-- Shared materials. Declared once; every cloned swimmer references them. -->
+<svg id="sw-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <linearGradient id="gSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6E1CD"/><stop offset=".46" stop-color="#E4C0A2"/><stop offset="1" stop-color="#C2926E"/>
+    </linearGradient>
+    <linearGradient id="gSkinBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DCB79A"/><stop offset="1" stop-color="#A8805F"/>
+    </linearGradient>
+    <linearGradient id="gSuit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A4F64"/><stop offset="1" stop-color="#18242E"/>
+    </linearGradient>
+    <linearGradient id="gCap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#43596C"/><stop offset="1" stop-color="#22323F"/>
+    </linearGradient>
+    <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D5EAF3" stop-opacity=".95"/>
+      <stop offset=".34" stop-color="#A7D0E3" stop-opacity=".95"/>
+      <stop offset=".72" stop-color="#5C9EC0" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#1B5E82" stop-opacity=".95"/>
+    </linearGradient>
+    <linearGradient id="gSurface" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E7F2F7"/><stop offset="1" stop-color="#8FB9CE"/>
+    </linearGradient>
+    <linearGradient id="gRay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="clipWater"><rect x="-400" y="262" width="2000" height="438"/></clipPath>
+  </defs>
+</svg>
+
+<!-- =======================================================================
+     THE SWIMMER — cloned into every [data-swimmer] host.
+     Twelve independently rotatable joints; one character throughout.
      ======================================================================= -->
 <template id="tpl-swimmer">
-  <svg class="swimmer" viewBox="50 8 400 240" role="img" preserveAspectRatio="xMidYMid meet" aria-label="Line-drawing placeholder of a swimmer">
-    <!-- water -->
-    <g class="sw-water" aria-hidden="true">
-      <rect x="0" y="130" width="480" height="130"></rect>
-      <line x1="0" y1="158" x2="480" y2="158"></line>
-      <line x1="0" y1="192" x2="480" y2="192"></line>
-      <line x1="0" y1="226" x2="480" y2="226"></line>
-    </g>
-    <line class="sw-waterline" x1="0" y1="130" x2="480" y2="130" aria-hidden="true"></line>
+  <svg class="swimmer" viewBox="40 0 1120 700" role="img" preserveAspectRatio="xMidYMid meet"
+       aria-label="Illustration of a swimmer in a pool">
 
-    <!-- pool wall (push &amp; glide only) -->
-    <g class="sw-wall" aria-hidden="true"><rect x="416" y="8" width="34" height="240"></rect></g>
-
-    <!-- movement trail -->
-    <g class="sw-trail" aria-hidden="true">
-      <line x1="300" y1="106" x2="440" y2="106"></line>
-      <line x1="316" y1="156" x2="446" y2="156"></line>
+    <!-- ---------- the room the pool sits in ---------- -->
+    <g class="sw-room" aria-hidden="true">
+      <rect x="-400" y="-400" width="2000" height="662" fill="#FBFCFC"></rect>
+      <rect x="-400" y="176" width="2000" height="86" fill="#F1F5F6"></rect>
+      <line x1="-400" y1="176" x2="1600" y2="176" stroke="rgba(16,26,34,.07)" stroke-width="1.5"></line>
+      <rect x="-400" y="246" width="2000" height="16" fill="#E7EFF1"></rect>
     </g>
 
-    <!-- exhaled bubbles -->
-    <g class="sw-bubbles" aria-hidden="true">
-      <circle cx="152" cy="152" r="4"></circle>
-      <circle cx="170" cy="162" r="3"></circle>
-      <circle cx="140" cy="170" r="5"></circle>
-      <circle cx="162" cy="180" r="3.5"></circle>
-      <circle cx="146" cy="190" r="2.5"></circle>
+    <!-- ---------- the water column ---------- -->
+    <rect class="sw-water" x="-400" y="262" width="2000" height="438" fill="url(#gWater)" fill-opacity=".95"></rect>
+
+    <g clip-path="url(#clipWater)">
+      <!-- shafts of light from the surface -->
+      <g class="sw-rays" opacity=".5">
+        <path d="M300,262 L232,700 L338,700 L376,262 Z" fill="url(#gRay)"></path>
+        <path d="M624,262 L584,700 L656,700 L684,262 Z" fill="url(#gRay)"></path>
+        <path d="M904,262 L878,700 L940,700 L970,262 Z" fill="url(#gRay)"></path>
+      </g>
+      <!-- caustic light on the water volume -->
+      <g class="sw-causticW">
+        <ellipse cx="180" cy="352" rx="78" ry="12" fill="#fff" opacity=".3"></ellipse>
+        <ellipse cx="352" cy="336" rx="104" ry="10" fill="#fff" opacity=".26"></ellipse>
+        <ellipse cx="560" cy="368" rx="88" ry="13" fill="#fff" opacity=".24"></ellipse>
+        <ellipse cx="742" cy="340" rx="112" ry="11" fill="#fff" opacity=".22"></ellipse>
+        <ellipse cx="960" cy="366" rx="82" ry="12" fill="#fff" opacity=".22"></ellipse>
+        <ellipse cx="286" cy="438" rx="120" ry="12" fill="#fff" opacity=".15"></ellipse>
+        <ellipse cx="640" cy="452" rx="140" ry="13" fill="#fff" opacity=".13"></ellipse>
+        <ellipse cx="962" cy="430" rx="100" ry="11" fill="#fff" opacity=".12"></ellipse>
+        <ellipse cx="440" cy="518" rx="150" ry="12" fill="#fff" opacity=".08"></ellipse>
+        <ellipse cx="760" cy="586" rx="170" ry="12" fill="#fff" opacity=".06"></ellipse>
+      </g>
+      <!-- lane rope + pool floor give the volume scale -->
+      <g class="sw-rope" opacity=".5"></g>
+      <g class="sw-floor" opacity=".7">
+        <line x1="-400" y1="606" x2="1600" y2="606"></line>
+        <line x1="-400" y1="646" x2="1600" y2="646" opacity=".45"></line>
+      </g>
+      <!-- pool wall, shown for the push &amp; glide sequence -->
+      <g class="sw-wall">
+        <rect x="1078" y="262" width="82" height="438"></rect>
+        <line x1="1078" y1="352" x2="1160" y2="352"></line>
+        <line x1="1078" y1="442" x2="1160" y2="442"></line>
+        <line x1="1078" y1="532" x2="1160" y2="532"></line>
+        <line x1="1078" y1="622" x2="1160" y2="622"></line>
+        <line x1="1118" y1="262" x2="1118" y2="700"></line>
+      </g>
     </g>
 
-    <!-- the figure -->
+    <!-- ---------- the waterline ---------- -->
+    <g class="sw-waterline">
+      <rect x="-400" y="252" width="2000" height="20" fill="url(#gSurface)" opacity=".75"></rect>
+      <path d="M-400,262 C-180,257 60,267 400,262 C540,257 620,267 760,262 C900,257 1120,267 1600,262"
+            fill="none" stroke="rgba(255,255,255,.95)" stroke-width="2.5"></path>
+    </g>
+
+    <!-- ---------- motion through the water ---------- -->
+    <g class="sw-trail">
+      <path d="M968,254 C1030,248 1082,254 1146,246" stroke-width="3.5" opacity=".8"></path>
+      <path d="M986,332 C1046,340 1096,332 1150,342" stroke-width="3" opacity=".6"></path>
+      <path d="M1012,296 C1064,292 1108,298 1152,292" stroke-width="2.5" opacity=".45"></path>
+    </g>
+
+    <!-- ---------- the body ---------- -->
     <g class="sw-figure">
-      <!-- legs pivot at the hip -->
-      <g class="sw-legB">
-        <line class="sw-ink sw-ink--back" x1="262" y1="136" x2="312" y2="136"></line>
-        <g class="sw-kneeB">
-          <line class="sw-ink sw-ink--back" x1="312" y1="136" x2="352" y2="136"></line>
-          <line class="sw-ink sw-ink--back" x1="352" y1="136" x2="370" y2="142"></line>
-        </g>
-      </g>
-      <g class="sw-legF">
-        <line class="sw-ink" x1="262" y1="127" x2="312" y2="127"></line>
-        <g class="sw-kneeF">
-          <line class="sw-ink" x1="312" y1="127" x2="352" y2="127"></line>
-          <line class="sw-ink" x1="352" y1="127" x2="370" y2="133"></line>
+
+      <!-- far leg — hangs off the hip -->
+      <g class="sw-back">
+        <g class="sw-legB">
+          <path class="sw-skin" d="M620,286 L742,294 A18 18 0 0 1 742,330 L620,338 A26 26 0 0 0 620,286 Z"></path>
+          <g class="sw-kneeB">
+            <path class="sw-skin" d="M742,295 L858,302 A10 10 0 0 1 858,322 L742,329 A17 17 0 0 0 742,295 Z"></path>
+            <g class="sw-ankB"><path class="sw-skin" d="M858,303 L918,308 A4 4 0 0 1 918,316 L858,321 A9 9 0 0 0 858,303 Z"></path></g>
+          </g>
         </g>
       </g>
 
-      <!-- trunk pivots at the hip; head + arms ride with it -->
+      <!-- near leg -->
+      <g class="sw-legF">
+        <path class="sw-skin" d="M620,262 L742,270 A18 18 0 0 1 742,306 L620,314 A26 26 0 0 0 620,262 Z"></path>
+        <path class="sw-hi" d="M632,270 L738,276 A5 5 0 0 1 738,282 L632,283 Z" opacity=".16"></path>
+        <g class="sw-kneeF">
+          <path class="sw-skin" d="M742,271 L858,278 A10 10 0 0 1 858,298 L742,305 A17 17 0 0 0 742,271 Z"></path>
+          <g class="sw-ankF"><path class="sw-skin" d="M858,279 L918,284 A4 4 0 0 1 918,292 L858,297 A9 9 0 0 0 858,279 Z"></path></g>
+        </g>
+      </g>
+
+      <!-- trunk carries head and near arm -->
       <g class="sw-trunk">
-        <g class="sw-armB">
-          <line class="sw-ink sw-ink--back" x1="186" y1="140" x2="146" y2="140"></line>
-          <g class="sw-elbB"><line class="sw-ink sw-ink--back" x1="146" y1="140" x2="110" y2="140"></line></g>
+        <!-- far arm — behind the torso, but carried by it -->
+        <g class="sw-back">
+          <g class="sw-armB">
+            <path class="sw-skin" d="M430,294 L340,298 A14 14 0 0 1 340,326 L430,330 A18 18 0 0 0 430,294 Z"></path>
+            <g class="sw-elbB">
+              <path class="sw-skin" d="M340,299 L262,302 A10 10 0 0 1 262,322 L340,325 A13 13 0 0 0 340,299 Z"></path>
+              <g class="sw-wriB"><path class="sw-skin" d="M262,300 L222,302 A9 13 0 0 1 222,324 L262,324 A11 11 0 0 0 262,300 Z"></path></g>
+            </g>
+          </g>
         </g>
-        <line class="sw-ink sw-ink--torso" x1="262" y1="131" x2="186" y2="131"></line>
-        <g class="sw-head"><circle cx="166" cy="131" r="14"></circle></g>
+        <path class="sw-skin" d="M434,258 C500,250 566,256 624,268 C644,274 650,294 646,306 C642,318 630,328 620,334 C554,346 490,344 438,334 C418,326 410,306 414,288 C418,270 424,262 434,258 Z"></path>
+        <path class="sw-hi" d="M444,266 C500,259 556,264 610,274 C618,279 618,286 610,289 C556,280 500,275 446,280 C438,276 438,270 444,266 Z" opacity=".18"></path>
+        <path class="sw-suit" d="M568,272 C598,268 620,272 636,282 C644,296 642,312 630,324 C612,334 586,336 566,330 C574,312 574,292 568,272 Z"></path>
+
         <g class="sw-armF">
-          <line class="sw-ink" x1="186" y1="122" x2="146" y2="122"></line>
-          <g class="sw-elbF"><line class="sw-ink" x1="146" y1="122" x2="110" y2="122"></line></g>
+          <path class="sw-skin" d="M430,260 L340,264 A14 14 0 0 1 340,292 L430,296 A18 18 0 0 0 430,260 Z"></path>
+          <path class="sw-hi" d="M422,268 L346,270 A4 4 0 0 1 346,276 L422,277 Z" opacity=".16"></path>
+          <g class="sw-elbF">
+            <path class="sw-skin" d="M340,265 L262,268 A10 10 0 0 1 262,288 L340,291 A13 13 0 0 0 340,265 Z"></path>
+            <g class="sw-wriF"><path class="sw-skin" d="M262,266 L222,268 A9 13 0 0 1 222,290 L262,290 A11 11 0 0 0 262,266 Z"></path></g>
+          </g>
         </g>
+
+        <g class="sw-head">
+          <path class="sw-skin" d="M434,280 L404,276 A14 14 0 0 0 404,306 L434,312 A16 16 0 0 0 434,280 Z"></path>
+          <g class="sw-skull">
+            <ellipse class="sw-cap" cx="368" cy="288" rx="35" ry="31"></ellipse>
+            <path class="sw-skin" d="M344,262 C330,272 325,290 331,304 C337,317 351,323 364,319 C354,306 348,286 352,264 Z"></path>
+            <path class="sw-goggle" d="M330,272 C342,263 357,262 368,266 L368,282 C356,276 342,279 331,287 Z"></path>
+            <path class="sw-strap" d="M368,272 C384,268 396,272 402,280"></path>
+            <ellipse class="sw-hi" cx="362" cy="268" rx="14" ry="6" opacity=".22"></ellipse>
+          </g>
+        </g>
+      </g>
+
+      <!-- caustic light playing over the body -->
+      <g class="sw-caustic">
+        <ellipse cx="520" cy="288" rx="96" ry="24"></ellipse>
+        <ellipse cx="756" cy="298" rx="72" ry="17"></ellipse>
+        <ellipse cx="372" cy="282" rx="52" ry="19"></ellipse>
       </g>
     </g>
 
-    <!-- annotation layer (opt-in per section) -->
-    <g class="sw-annot" aria-hidden="true">
-      <circle cx="166" cy="117" r="3"></circle>
-      <line x1="166" y1="117" x2="166" y2="64"></line><text x="146" y="56">HEAD</text>
-      <circle cx="116" cy="122" r="3"></circle>
-      <line x1="116" y1="122" x2="86" y2="88"></line><text x="58" y="80">ARMS</text>
-      <circle cx="224" cy="131" r="3"></circle>
-      <line x1="224" y1="131" x2="224" y2="206"></line><text x="206" y="222">HIPS</text>
-      <circle cx="312" cy="127" r="3"></circle>
-      <line x1="312" y1="127" x2="330" y2="70"></line><text x="322" y="62">LEGS</text>
-      <circle cx="368" cy="133" r="3"></circle>
-      <line x1="368" y1="133" x2="398" y2="192"></line><text x="386" y="208">TOES</text>
+    <!-- ---------- what the water does back ---------- -->
+    <g class="sw-ripple">
+      <ellipse cx="430" cy="262" rx="82" ry="12"></ellipse>
+      <ellipse cx="430" cy="262" rx="82" ry="12"></ellipse>
+      <ellipse cx="430" cy="262" rx="82" ry="12"></ellipse>
+    </g>
+    <g class="sw-bubbles">
+      <circle cx="332" cy="342" r="7"></circle>
+      <circle cx="358" cy="364" r="5"></circle>
+      <circle cx="306" cy="380" r="9"></circle>
+      <circle cx="346" cy="400" r="6"></circle>
+      <circle cx="318" cy="416" r="4"></circle>
+      <circle cx="366" cy="332" r="4.5"></circle>
+    </g>
+
+    <!-- ---------- educational annotation ---------- -->
+    <g class="sw-annot">
+      <circle cx="300" cy="276" r="4"></circle><line x1="300" y1="276" x2="300" y2="222"></line>
+      <rect x="258" y="186" width="86" height="32" rx="16"></rect><text x="301" y="208" text-anchor="middle">ARMS</text>
+      <circle cx="400" cy="256" r="4"></circle><line x1="400" y1="256" x2="400" y2="164"></line>
+      <rect x="358" y="128" width="86" height="32" rx="16"></rect><text x="401" y="150" text-anchor="middle">HEAD</text>
+      <circle cx="620" cy="306" r="4"></circle><line x1="620" y1="306" x2="620" y2="400"></line>
+      <rect x="578" y="404" width="84" height="32" rx="16"></rect><text x="620" y="426" text-anchor="middle">HIPS</text>
+      <circle cx="742" cy="286" r="4"></circle><line x1="742" y1="286" x2="800" y2="196"></line>
+      <rect x="758" y="158" width="84" height="32" rx="16"></rect><text x="800" y="180" text-anchor="middle">LEGS</text>
+      <circle cx="912" cy="292" r="4"></circle><line x1="912" y1="292" x2="940" y2="386"></line>
+      <rect x="898" y="390" width="84" height="32" rx="16"></rect><text x="940" y="412" text-anchor="middle">TOES</text>
     </g>
   </svg>
 </template>
-
 <!-- ============================ HEADER ================================== -->
 <header class="header">
   <div class="wrap header__in">
-    <span class="logo">[ SWIM / LOGO ]</span>
+    <span class="logo">Learn&nbsp;to&nbsp;Swim</span>
     <nav class="nav" aria-label="Primary">
       <a href="#learning-path" data-nav>Learn</a>
       <a href="#stroke-explorer" data-nav>Strokes</a>
@@ -591,7 +1096,7 @@ table{border-collapse:collapse;width:100%}
   <div class="wrap">
     <div class="hero__grid">
       <div>
-        <p class="eyebrow">Beginner guide — wireframe v1</p>
+        <p class="eyebrow">A beginner's guide to the water</p>
         <h1 class="h-hero">Learn<br>to Swim</h1>
         <p class="h-2" style="margin:18px 0 14px;font-weight:400;color:var(--g70)">One movement at a time.</p>
         <p class="lede">A visual guide for your first steps in the water.</p>
@@ -601,9 +1106,10 @@ table{border-collapse:collapse;width:100%}
         </div>
         <p class="note" style="margin-top:34px">Use this guide to understand the movement.<br>Practise in a safe environment and consider learning with a qualified instructor.</p>
       </div>
-      <div class="stage hero__stage" data-label="[ LARGE SWIMMER / WATER ANIMATION ]">
+      <div class="stage hero__stage" data-label="Side view · at the surface">
         <div data-swimmer="hero" data-state="floating idle" style="width:100%"></div>
-        <div class="stage__meta"><span>Same swimmer reused site-wide</span><span id="hero-state">STATE — FLOATING</span></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span>One swimmer · one body of water</span><span id="hero-state">STATE — FLOATING</span></div>
       </div>
     </div>
     <div class="scrollcue"><span class="scrollcue__line"></span> Scroll to begin</div>
@@ -626,9 +1132,10 @@ table{border-collapse:collapse;width:100%}
       </div>
     </div>
 
-    <div class="stage" data-label="[ SWIMMER / WATER CONFIDENCE ]" style="margin:36px 0 24px">
+    <div class="stage" data-frame="tall" data-label="Side view · waist depth" style="margin:36px 0 24px">
       <div data-swimmer="confidence" data-state="standing" style="width:100%"></div>
-      <div class="stage__meta"><span id="wc-caption">STAND — feet on the pool floor, water at waist height</span><span id="wc-step">01 / 04</span></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="wc-caption">STAND — feet on the pool floor, water at waist height</span><span id="wc-step">01 / 04</span></div>
     </div>
 
     <ol class="flow" id="wc-flow">
@@ -654,9 +1161,10 @@ table{border-collapse:collapse;width:100%}
     <p class="eyebrow">02 — Breathing / bubbles</p>
     <div class="split">
       <div>
-        <div class="stage" data-label="[ SWIMMER — BREATHING ANIMATION ]" style="min-height:440px">
+        <div class="stage" data-frame="tall" data-label="Three-quarter view · at the surface">
           <div data-swimmer="breath" data-state="standing" style="width:100%"></div>
-          <div class="stage__meta"><span id="br-caption">Above water — calm inhale</span><span id="br-count">STEP 01 / 04</span></div>
+          <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="br-caption">Above water — calm inhale</span><span id="br-count">STEP 01 / 04</span></div>
         </div>
         <div class="row" style="margin-top:18px;justify-content:space-between">
           <div class="btn-group">
@@ -700,8 +1208,9 @@ table{border-collapse:collapse;width:100%}
           <div class="card"><span class="card__k">Breath</span><span class="card__t">Clear</span><span class="card__d">Keep your airway clear.</span></div>
         </div>
       </div>
-      <div class="stage" role="tabpanel" id="fl-panel" aria-labelledby="tab-front" tabindex="0" data-label="[ SWIMMER FLOATING + LABELS ]" style="min-height:440px">
+      <div class="stage" role="tabpanel" id="fl-panel" aria-labelledby="tab-front" tabindex="0" data-label="Side view · body balance">
         <div data-swimmer="float" data-state="floating" data-annot="1" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
         <div class="stage__meta"><span id="fl-caption">FRONT FLOAT — face down, body long</span><span>HEAD · HIPS · LEGS · ARMS</span></div>
       </div>
     </div>
@@ -713,8 +1222,9 @@ table{border-collapse:collapse;width:100%}
   <div class="wrap reveal">
     <p class="eyebrow">04 — Body position &amp; streamline</p>
     <div class="split">
-      <div class="stage" data-label="[ SWIMMER SIDE PROFILE ]" style="min-height:440px">
+      <div class="stage" data-label="Side view · body line">
         <div data-swimmer="stream" data-state="normal" data-annot="1" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
         <div class="stage__meta"><span id="st-caption">NORMAL — head lifted, hips low, more resistance</span><span id="st-drag">DRAG ●●●●○</span></div>
       </div>
       <div>
@@ -749,9 +1259,10 @@ table{border-collapse:collapse;width:100%}
       </div>
     </div>
 
-    <div class="stage" data-label="[ PUSH &amp; GLIDE SEQUENCE ]" style="margin:32px 0 20px;min-height:400px">
+    <div class="stage" data-frame="deep" data-label="Underwater side view · travel" style="margin:32px 0 20px">
       <div data-swimmer="glide" data-state="wall" style="width:100%"></div>
-      <div class="stage__meta"><span id="gl-caption">FRAME 01 — feet planted on the wall, body tucked</span><span id="gl-frame">01 / 05</span></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="gl-caption">FRAME 01 — feet planted on the wall, body tucked</span><span id="gl-frame">01 / 05</span></div>
     </div>
 
     <ol class="flow flow--5" id="gl-flow">
@@ -787,8 +1298,9 @@ table{border-collapse:collapse;width:100%}
           <li class="card"><span class="card__k">04</span><span class="card__t">Kick from the hips</span><span class="card__d">The movement starts high, not low.</span></li>
         </ul>
       </div>
-      <div class="stage" data-label="[ SWIMMER — LEG MOVEMENT ]" style="min-height:440px">
+      <div class="stage" data-frame="deep" data-label="Underwater side view · legs">
         <div data-swimmer="kick" data-state="kickstraight" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
         <div class="stage__meta"><span id="ki-caption">STRAIGHT LEG — the neutral position</span><span id="ki-mode">PAUSED</span></div>
       </div>
     </div>
@@ -800,8 +1312,9 @@ table{border-collapse:collapse;width:100%}
   <div class="wrap reveal">
     <p class="eyebrow">07 — Arm movement</p>
     <div class="split">
-      <div class="stage" data-label="[ SWIMMER — ARM CYCLE ]" style="min-height:440px">
+      <div class="stage" data-label="Three-quarter view · arm cycle">
         <div data-swimmer="arm" data-state="freestyle" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
         <div class="stage__meta"><span id="ar-caption">ENTRY — hand slides in in front of the shoulder</span><span id="ar-count">01 / 05</span></div>
       </div>
       <div>
@@ -837,9 +1350,10 @@ table{border-collapse:collapse;width:100%}
       </div>
     </div>
 
-    <div class="stage" data-label="[ FULL STROKE — COORDINATED ]" style="margin:32px 0 24px;min-height:400px">
+    <div class="stage" data-frame="deep" data-label="Side view · full stroke" style="margin:32px 0 24px">
       <div data-swimmer="coord" data-state="freestyle" style="width:100%"></div>
-      <div class="stage__meta"><span id="co-caption">Paused — press play to see the four tracks line up</span><span id="co-beat">BEAT 0 / 8</span></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="co-caption">Paused — press play to see the four tracks line up</span><span id="co-beat">BEAT 0 / 8</span></div>
     </div>
 
     <div id="co-tracks">
@@ -865,9 +1379,10 @@ table{border-collapse:collapse;width:100%}
       </div>
     </div>
 
-    <div class="stage" data-label="[ LARGE SWIMMER — SELECTED STROKE ]" style="margin:32px 0 20px;min-height:440px">
+    <div class="stage" data-frame="deep" data-label="Side view · selected stroke" style="margin:32px 0 20px">
       <div data-swimmer="stroke" data-state="freestyle" style="width:100%"></div>
-      <div class="stage__meta"><span id="sx-caption">Body long, close to the surface</span><span id="sx-phase">READY</span></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="sx-caption">Body long, close to the surface</span><span id="sx-phase">READY</span></div>
     </div>
 
     <div class="tiles tiles--4" id="sx-tiles" role="group" aria-label="Choose a stroke">
@@ -1091,9 +1606,10 @@ table{border-collapse:collapse;width:100%}
           <button class="btn" data-scroll="#stroke-explorer">Explore Strokes</button>
         </div>
       </div>
-      <div class="stage" data-label="[ CLOSING SWIMMER — SAME AS HERO ]" style="min-height:360px">
+      <div class="stage" data-label="Side view · back at the surface">
         <div data-swimmer="outro" data-state="floating idle" style="width:100%"></div>
-        <div class="stage__meta"><span>Ends where it started</span><span>STATE — FLOATING</span></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span>Back where it started</span><span>STATE — FLOATING</span></div>
       </div>
     </div>
   </div>
@@ -1103,8 +1619,8 @@ table{border-collapse:collapse;width:100%}
 
 <footer class="footer">
   <div class="wrap footer__in">
-    <span>[ SWIM / LOGO ] — Interactive learning wireframe v1</span>
-    <span>Grayscale wireframe · desktop 1280–1600px · no visual design applied</span>
+    <span>Learn to Swim — interactive prototype, visual v1</span>
+    <span>Desktop 1280–1600px · brand identity not yet finalised</span>
     <span>Educational guide only — practise with a qualified instructor.</span>
   </div>
 </footer>
@@ -1135,15 +1651,57 @@ var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySel
    whole site literally renders the same character.                        */
 var TPL = $("#tpl-swimmer");
 var SW = {};
-var MINI_BOX = "100 76 292 112";        // flat poses, cropped to the body
-var MINI_TALL = "150 10 230 242";       // upright poses need head-to-toe room
+var FULL_BOX = "40 0 1120 700";         // the whole frame: air, surface, depth
+var MINI_BOX = "210 155 650 268";       // flat poses, cropped to the body
+var MINI_TALL = "466 8 372 636";        // upright poses need head-to-toe room
+
+/* Choose the camera. A stage keeps the body at a constant size and lets
+   the water grow to whatever shape the frame is, so nothing is ever cut
+   off and the surface always sits at the same height in the frame.
+   Cards use a fixed crop instead — they are too small to reframe. */
+var FRAMES = {
+  tall:{H:700, wl:.40, minW:1010},   /* upright poses: head to toe        */
+  flat:{H:420, wl:.46, minW:990},    /* at the surface: air above, water below */
+  deep:{H:420, wl:.20, minW:990}     /* underwater: the camera is below the line */
+};
+var STAGES = [];
+
+function fitStage(svg, host){
+  var f = FRAMES[(host.parentNode && host.parentNode.getAttribute("data-frame")) || "flat"] || FRAMES.flat;
+  var w = host.clientWidth || 1, h = host.clientHeight || 1, A = w / h;
+  var H = f.H, W = H * A;
+  if(W < f.minW){ W = f.minW; H = W / A; }
+  svg.setAttribute("viewBox", (600 - W / 2).toFixed(1) + " " + (262 - H * f.wl).toFixed(1) +
+                              " " + W.toFixed(1) + " " + H.toFixed(1));
+}
+
+/* A card-sized swimmer never shows the lane rope, the pool wall or the
+   annotation layer, so those subtrees are dropped rather than hidden. */
+var MINI_DROP = [".sw-annot",".sw-rope",".sw-floor",".sw-wall",".sw-ripple",".sw-rays"];
+
+function frame(svg, mini, crop){
+  if(!mini){ svg.setAttribute("preserveAspectRatio","xMidYMid slice"); return; }
+  MINI_DROP.forEach(function(sel){
+    var g = svg.querySelector(sel);
+    if(g && g.parentNode) g.parentNode.removeChild(g);
+  });
+  if(crop === "vertical"){ svg.setAttribute("viewBox", MINI_TALL); svg.setAttribute("preserveAspectRatio","xMidYMid meet"); return; }
+  svg.setAttribute("viewBox", MINI_BOX); svg.setAttribute("preserveAspectRatio","xMidYMid slice");
+}
+
+var reflow;
+window.addEventListener("resize", function(){
+  clearTimeout(reflow);
+  reflow = setTimeout(function(){ STAGES.forEach(function(s){ fitStage(s.svg, s.host); }); }, 160);
+});
 
 $$("[data-swimmer]").forEach(function(host){
   var svg = TPL.content.querySelector("svg").cloneNode(true);
   var key = host.getAttribute("data-swimmer");
-  if(host.getAttribute("data-mini") === "1")
-    svg.setAttribute("viewBox", host.getAttribute("data-crop") === "vertical" ? MINI_TALL : MINI_BOX);
+  var isMini = host.getAttribute("data-mini") === "1";
+  frame(svg, isMini, host.getAttribute("data-crop"));
   host.appendChild(svg);
+  if(!isMini){ STAGES.push({svg:svg, host:host}); fitStage(svg, host); }
   SW[key] = {
     svg: svg,
     mini: host.getAttribute("data-mini") === "1",
@@ -1447,7 +2005,7 @@ var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recov
       "--armF": a + "deg",
       "--armB": (a - 180) + "deg",
       "--trunk": (9 * Math.sin(p * Math.PI * 2)).toFixed(2) + "deg",
-      "--head": (p > 0.26 && p < 0.40) || (p > 0.76 && p < 0.90) ? "-22deg" : "0deg"
+      "--head": (p > 0.26 && p < 0.40) || (p > 0.76 && p < 0.90) ? "22deg" : "0deg"
     });
 
     var beat = Math.floor(p * 8);
@@ -1504,7 +2062,7 @@ var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recov
         {cap:"Pull — the body moves past the hand",       a:-88,  x:{"--trunk":"6deg"}},
         {cap:"Push — finish past the hip",                a:-148, x:{"--trunk":"-4deg"}},
         {cap:"Recovery — relaxed arm swings forward",     a:-238, x:{"--elbF":"-38deg"}},
-        {cap:"Breath — head turns with the body roll",    a:-300, x:{"--trunk":"14deg","--head":"-24deg"}}
+        {cap:"Breath — head turns with the body roll",    a:-300, x:{"--trunk":"14deg","--head":"24deg"}}
       ],
       mistakes:[
         {ak:"Lifting the head", ad:"Hips drop the moment you look forward.", as:"headhigh", dk:"Eyes down", dd:"Head in line, hips stay up.", ds:"streamlined"},
@@ -1525,7 +2083,7 @@ var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recov
       ],
       phases:[
         {cap:"Pull — both hands sweep out together", a:-55,  x:{"--trunk":"6deg","--legF":"0deg","--legB":"0deg","--kneeF":"0deg","--kneeB":"0deg"}},
-        {cap:"Breathe — the chest lifts, chin forward", a:-105, x:{"--trunk":"18deg","--head":"-20deg"}},
+        {cap:"Breathe — the chest lifts, chin forward", a:-105, x:{"--trunk":"18deg","--head":"20deg"}},
         {cap:"Kick — heels to the hips, then push wide", a:-20,  x:{"--trunk":"2deg","--head":"0deg","--legF":"-8deg","--legB":"8deg","--kneeF":"-78deg","--kneeB":"-72deg"}},
         {cap:"Glide — the quiet part where you travel", a:0,    x:{"--trunk":"0deg","--legF":"0deg","--legB":"0deg","--kneeF":"0deg","--kneeB":"0deg"}}
       ],
@@ -1574,7 +2132,7 @@ var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recov
         {cap:"Body wave — the chest presses down first", a:0,    x:{"--trunk":"-8deg"}},
         {cap:"Dolphin kick — both legs together",       a:-40,  x:{"--trunk":"6deg"}},
         {cap:"Double arm pull — both arms press back",  a:-95,  x:{"--trunk":"4deg"}},
-        {cap:"Breath — chin stays low and forward",     a:-155, x:{"--trunk":"20deg","--head":"-18deg"}},
+        {cap:"Breath — chin stays low and forward",     a:-155, x:{"--trunk":"20deg","--head":"18deg"}},
         {cap:"Recovery — arms swing wide over the water", a:-250, x:{"--trunk":"-4deg","--head":"0deg"}}
       ],
       mistakes:[
@@ -1592,7 +2150,7 @@ var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recov
   function mount(host, state, mini){
     var svg = TPL.content.querySelector("svg").cloneNode(true);
     var key = "dyn" + (++uid);
-    if(mini) svg.setAttribute("viewBox", MINI_BOX);
+    frame(svg, mini, null);
     host.setAttribute("data-swimmer", key);
     host.appendChild(svg);
     SW[key] = {svg:svg, mini:!!mini, annot:false, state:state};
@@ -1847,7 +2405,111 @@ var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recov
   els.forEach(function(e){ io.observe(e); });
 })();
 
-/* ---- 16. EXPOSE STATE FOR REVIEW / DEBUGGING --------------------------- */
+/* ---- 16. THE ENVIRONMENT ----------------------------------------------
+   A single canvas of suspended particles behind the whole document, and a
+   scroll driver that carries the page from morning air down into the water
+   and back to the surface at the end.                                     */
+(function(){
+  var cv = $("#env-canvas");
+  if(!cv) return;
+  var ctx = cv.getContext("2d", {alpha:true});
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  var W = 0, H = 0, motes = [], raf = null;
+
+  function size(){
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round(Math.min(84, (W * H) / 19000));
+    motes = [];
+    for(var i = 0; i < n; i++){
+      motes.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 0.7 + Math.random() * 2.6,
+        vy: -(0.05 + Math.random() * 0.22),
+        vx: (Math.random() - 0.5) * 0.16,
+        a: 0.14 + Math.random() * 0.4,
+        p: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function draw(t){
+    ctx.clearRect(0, 0, W, H);
+    for(var i = 0; i < motes.length; i++){
+      var m = motes[i];
+      m.y += m.vy; m.p += 0.006;
+      m.x += m.vx + Math.sin(m.p) * 0.16;
+      if(m.y < -8){ m.y = H + 8; m.x = Math.random() * W; }
+      if(m.x < -8) m.x = W + 8; else if(m.x > W + 8) m.x = -8;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.r, 0, 6.2832);
+      ctx.fillStyle = "rgba(255,255,255," + (m.a * (0.5 + 0.5 * Math.sin(m.p))).toFixed(3) + ")";
+      ctx.fill();
+    }
+    raf = requestAnimationFrame(draw);
+  }
+
+  function start(){ if(!raf && !REDUCED) raf = requestAnimationFrame(draw); }
+  function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; } }
+
+  size(); REDUCED ? draw(0) && stop() : start();
+  if(REDUCED){ stop(); ctx.clearRect(0,0,W,H); }
+  var rt;
+  window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(function(){ size(); }, 200); });
+  document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+
+  /* the depth of the whole page follows the lesson: air, then water, then
+     back to the surface for the closing invitation */
+  var root = document.documentElement;
+  function smooth(a, b, v){ var t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); }
+  var lastDepth = -1;
+  function depth(){
+    var max = document.body.scrollHeight - window.innerHeight;
+    var p = max > 0 ? window.scrollY / max : 0;
+    var d = smooth(0.04, 0.46, p) - 0.9 * smooth(0.80, 0.99, p);
+    d = Math.max(0, Math.min(1, d));
+    if(Math.abs(d - lastDepth) < 0.008) return;
+    lastDepth = d;
+    root.style.setProperty("--depth", d.toFixed(3));
+  }
+
+  /* the hero swimmer stands up out of the float as you scroll into the
+     first lesson, so the two sections share one continuous movement */
+  var heroStates = [
+    {to:.30, state:"floating idle", name:"FLOATING"},
+    {to:.62, state:"comfortable",   name:"UPRIGHT"},
+    {to:2,   state:"standing",      name:"STANDING"}
+  ];
+  var heroAt = -1;
+  function heroStory(){
+    var hero = $("#hero"); if(!hero || !SW.hero) return;
+    var h = hero.offsetHeight || 1;
+    var p = Math.min(1, Math.max(0, window.scrollY / h));
+    for(var i = 0; i < heroStates.length; i++){
+      if(p <= heroStates[i].to){
+        if(heroAt !== i){
+          heroAt = i;
+          setState("hero", heroStates[i].state);
+          setText("hero-state", "STATE — " + heroStates[i].name);
+        }
+        return;
+      }
+    }
+  }
+
+  var tick = false;
+  function onScroll(){
+    if(tick) return;
+    tick = true;
+    requestAnimationFrame(function(){ depth(); heroStory(); tick = false; });
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+  window.addEventListener("resize", onScroll);
+  depth(); heroStory();
+})();
+
+/* ---- 17. EXPOSE STATE FOR REVIEW / DEBUGGING --------------------------- */
 window.learningState = learningState;
 })();
 </script>
