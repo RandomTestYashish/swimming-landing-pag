@@ -1,0 +1,33 @@
+.glfb { position: absolute; inset: 0; overflow: hidden; }
+.glfb__sky {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(90% 60% at 22% -8%, #fffdf7 0%, rgba(255,253,247,0) 60%),
+    linear-gradient(180deg, #f7f4ec 0%, #efeade 62%, #e7e0d2 100%);
+}
+.glfb__deck {
+  position: absolute; left: 0; right: 0; top: 52%; height: 12%;
+  background: linear-gradient(180deg, #ece6d9, #ded7c6);
+}
+.glfb__water {
+  position: absolute; left: 0; right: 0; bottom: 0; top: 62%;
+  background: linear-gradient(180deg, #63b9d6 0%, #2b8fb4 44%, #10688c 78%, #094f6d 100%);
+  overflow: hidden;
+}
+.glfb__caustics {
+  position: absolute; inset: -10%;
+  background:
+    radial-gradient(30% 18% at 20% 24%, rgba(255,255,255,.5), transparent 62%),
+    radial-gradient(24% 14% at 62% 40%, rgba(255,255,255,.4), transparent 64%),
+    radial-gradient(34% 16% at 84% 18%, rgba(255,255,255,.32), transparent 66%),
+    radial-gradient(28% 20% at 40% 68%, rgba(255,255,255,.24), transparent 68%);
+  filter: blur(10px);
+  mix-blend-mode: soft-light;
+}
+.glfb__swimmer {
+  position: absolute; left: 54%; top: -6%; width: 16%; height: 26%;
+  background: radial-gradient(60% 50% at 40% 40%, rgba(201,152,115,.95), rgba(150,103,75,.7) 62%, rgba(150,103,75,0) 100%);
+  filter: blur(1px);
+  border-radius: 50%;
+  transform: rotate(-4deg);
+}

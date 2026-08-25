@@ -4,24 +4,28 @@
    framing, and a pool that runs from bright surface to absorbed depth.
    ========================================================================= */
 :root {
-  /* air + ground */
-  --paper: #f8f8f5;
-  --paper-warm: #fcfcfa;
-  --concrete: #d9d9d4;
-  --concrete-dark: #c3c3bd;
-  --concrete-shadow: #a9a9a2;
+  /* air + ground: pale limestone, held slightly grey so it never reads
+     as cream */
+  --paper: #f6f3ec;
+  --limestone: #f2efe8;
+  --limestone-deep: #e7e2d6;
+  --paper-warm: #fbf9f4;
+  --concrete: #d9d6cd;
+  --concrete-dark: #c3c0b6;
+  --concrete-shadow: #a9a69c;
 
-  /* water, surface to floor */
-  --pool-surface: #48c7e6;
-  --pool-mid: #159fc5;
-  --pool-deep: #087fa8;
-  --pool-abyss: #05617f;
-  --pool-foam: #e6f7fc;
+  /* water, surface to floor — muted, never neon */
+  --pool-surface: #6fb6cf;
+  --pool-mid: #2f8aab;
+  --pool-deep: #12617f;
+  --pool-abyss: #0b4459;
+  --pool-foam: #e4f0f3;
+  --navy: #17293c;
 
   /* ink */
   --ink: #151515;
-  --ink-2: #5a5a5a;
-  --ink-3: #777777;
+  --ink-2: #4f4f4c;
+  --ink-3: #6d6d68;
   --ink-inv: #ffffff;
 
   /* greenery */
@@ -56,7 +60,7 @@
   --ease-soft: cubic-bezier(0.4, 0.14, 0.2, 1);
 
   /* type */
-  --font-display: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Instrument Serif', 'Times New Roman', Georgia, serif;
   --font-ui: 'Manrope', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* set by the scroll driver: 0 = above water, 1 = fully submerged */

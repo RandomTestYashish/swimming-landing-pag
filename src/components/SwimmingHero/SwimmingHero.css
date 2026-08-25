@@ -1,0 +1,113 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--limestone);
+  isolation: isolate;
+}
+
+.hero__scene { position: absolute; inset: 0; z-index: 0; }
+.hero__scene canvas { width: 100% !important; height: 100% !important; display: block; }
+
+/* Light falls off toward the lower corners so the copy holds without a
+   panel behind it. Nothing heavier than this sits over the image. */
+.hero__overlay {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: grid;
+  align-content: start;
+  padding: clamp(120px, 17vh, 210px) var(--gutter) 0;
+  pointer-events: none;
+}
+
+
+.hero__copy { max-width: 720px; pointer-events: auto; }
+
+.hero__label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: clamp(20px, 3vh, 34px);
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(40px, 5.1vw, 82px);
+  line-height: 1.03;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+  text-wrap: balance;
+  margin-bottom: clamp(18px, 2.4vh, 28px);
+}
+
+.hero__sub {
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  line-height: 1.66;
+  color: var(--ink-2);
+  max-width: 44ch;
+}
+
+.hero__cta {
+  margin-top: clamp(26px, 3.6vh, 44px);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(21, 21, 21, 0.28);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  transition: border-color 320ms var(--ease), gap 320ms var(--ease);
+}
+.hero__cta svg { width: 26px; height: 8px; overflow: visible; transition: transform 320ms var(--ease); }
+.hero__cta:hover { border-bottom-color: var(--ink); }
+.hero__cta:hover svg { transform: translateX(7px); }
+
+.hero__cue {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+.hero__cue i {
+  display: block;
+  width: 46px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.42);
+  position: relative;
+  overflow: hidden;
+}
+.hero__cue i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: hero-cue 3s var(--ease) infinite;
+}
+@keyframes hero-cue {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+
+@media (max-width: 767px) {
+  .hero__overlay { padding-top: clamp(104px, 14vh, 150px); }
+  .hero__title { font-size: clamp(32px, 8.6vw, 46px); }
+  .hero__cue { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__cue i::after { animation: none; opacity: 0.5; }
+}

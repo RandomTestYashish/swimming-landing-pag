@@ -2,21 +2,21 @@ import { forwardRef } from 'react';
 import type { Lesson } from '../data/lessons';
 import './LessonSection.css';
 
-type Props = { lesson: Lesson; index: number; onNext: () => void; isLast: boolean; deep: boolean };
+type Props = { lesson: Lesson; index: number; onNext: () => void; isLast: boolean };
 
 /**
  * One chapter. Deliberately mostly empty: the stage behind it is doing the
  * explaining, and the panel only says what the swimmer is working on.
  */
 export const LessonSection = forwardRef<HTMLElement, Props>(function LessonSection(
-  { lesson, index, onNext, isLast, deep },
+  { lesson, index, onNext, isLast },
   ref
 ) {
   const side = index % 2 === 0 ? 'left' : 'right';
 
   return (
     <section
-      className={`lesson lesson--${side}${deep ? ' is-deep' : ''}`}
+      className={`lesson lesson--${side}`}
       id={`chapter-${lesson.id}`}
       ref={ref}
       aria-labelledby={`chapter-${lesson.id}-title`}
