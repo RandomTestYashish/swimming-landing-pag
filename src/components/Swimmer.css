@@ -1,0 +1,70 @@
+.sw { width: 100%; height: auto; overflow: visible; }
+/* the body rides lower than its own drawing origin: the surface has to
+   cross at the shoulder, not under the feet */
+.sw-figure { transform: translate(0px, 30px); }
+
+.sw-skin { fill: url(#sw-skin); }
+.sw-suit { fill: url(#sw-suit); }
+.sw-suit-hi { fill: #35558a; opacity: 0.35; }
+.sw-cap { fill: url(#sw-cap); }
+.sw-goggle { fill: #0d1219; }
+.sw-goggle-lens { fill: url(#sw-lens); }
+.sw-strap { fill: none; stroke: #0d1219; stroke-width: 7; stroke-linecap: round; opacity: 0.9; }
+.sw-mouth { fill: #5b2f28; opacity: 0.8; }
+
+/* form shading kept subtle — it reads as light, not as outline */
+.sw-shade { fill: #8d6047; opacity: 0.22; }
+.sw-sheen { fill: #ffffff; opacity: 0.16; }
+
+/* the far side of the body sits back in the water */
+/* the far side is shaded, not greyed — it is the same skin in less light */
+.sw-far { opacity: 0.94; }
+.sw-far .sw-skin { fill: #cf9d78; }
+.sw-far .sw-suit { fill: #1b3050; }
+
+/* refraction shifts the submerged half and magnifies it very slightly */
+.sw-under { transform: translate(4px, 2px) scale(1.005); transform-origin: 470px 320px; }
+
+.sw-cast { opacity: calc(0.22 + var(--sub, 0) * 0.3); }
+
+.sw-bodycaustic ellipse { fill: #d8f6ff; opacity: 0.1; mix-blend-mode: screen; }
+.sw-bodycaustic { animation: sw-caustic 13s ease-in-out infinite alternate; }
+@keyframes sw-caustic {
+  from { transform: translate3d(-16px, -5px, 0) scaleX(1); }
+  to   { transform: translate3d(20px, 7px, 0) scaleX(1.09); }
+}
+
+.sw-bubbles circle {
+  fill: rgba(255, 255, 255, 0.34);
+  stroke: rgba(255, 255, 255, 0.72);
+  stroke-width: 1.1;
+  animation: sw-rise 5.5s var(--ease-soft, ease) infinite;
+}
+.sw-bubbles circle:nth-child(2) { animation-delay: 0.7s; }
+.sw-bubbles circle:nth-child(3) { animation-delay: 1.4s; }
+.sw-bubbles circle:nth-child(4) { animation-delay: 2.1s; }
+.sw-bubbles circle:nth-child(5) { animation-delay: 2.8s; }
+.sw-bubbles circle:nth-child(6) { animation-delay: 3.5s; }
+.sw-bubbles circle:nth-child(7) { animation-delay: 4.2s; }
+.sw-bubbles circle:nth-child(8) { animation-delay: 4.9s; }
+@keyframes sw-rise {
+  0%   { transform: translate3d(0, 18px, 0) scale(0.5); opacity: 0; }
+  16%  { opacity: 1; }
+  100% { transform: translate3d(-26px, -120px, 0) scale(1.2); opacity: 0; }
+}
+
+
+.sw-wake { fill: rgba(255, 255, 255, 0.55); }
+.sw-wake--2 { fill: rgba(255, 255, 255, 0.3); }
+
+.sw-splash circle { fill: rgba(255, 255, 255, 0.82); }
+.sw-splash { animation: sw-splash 3.4s ease-in-out infinite; transform-origin: 452px 300px; }
+@keyframes sw-splash {
+  0%, 62% { opacity: 0.5; transform: scale(0.92); }
+  72%     { opacity: 1;   transform: scale(1.06); }
+  100%    { opacity: 0.5; transform: scale(0.92); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sw-bodycaustic, .sw-bubbles circle, .sw-splash { animation: none; }
+}

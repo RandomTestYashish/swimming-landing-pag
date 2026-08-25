@@ -1,0 +1,83 @@
+.hero {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  padding-top: clamp(180px, 27vh, 300px);
+  pointer-events: none;
+}
+
+.hero__copy { text-align: center; pointer-events: auto; }
+
+.hero__title {
+  font-size: clamp(15px, 1.55vw, 23px);
+  font-weight: 400;
+  line-height: 1.62;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.hero__title span { display: block; }
+
+.hero__cta {
+  margin-top: clamp(28px, 4vh, 46px);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 34px;
+  border: 1px solid rgba(21, 21, 21, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  transition: border-color var(--t-mid) var(--ease), background var(--t-mid) var(--ease);
+}
+.hero__cta svg { width: 24px; height: 8px; overflow: visible; transition: transform var(--t-mid) var(--ease); }
+.hero__cta:hover { border-color: var(--ink); background: rgba(255, 255, 255, 0.4); }
+.hero__cta:hover svg { transform: translateX(8px); }
+.hero__cta:active { transform: translateY(1px); }
+
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  z-index: 12;
+}
+.hero__scroll i {
+  width: 1px; height: 34px;
+  background: rgba(255, 255, 255, 0.4);
+  position: relative; overflow: hidden;
+}
+.hero__scroll i::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: #fff;
+  animation: hero-cue 2.6s var(--ease) infinite;
+}
+@keyframes hero-cue {
+  0% { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(100%); }
+}
+
+@media (max-width: 767px) {
+  .hero { padding-top: clamp(140px, 22vh, 220px); }
+  .hero__title { letter-spacing: 0.14em; line-height: 1.75; }
+  .hero__cta { padding: 15px 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__scroll i::after { animation: none; opacity: 0.4; }
+}

@@ -1,0 +1,41 @@
+/* The scene is fixed so the whole page reads as one continuous shot rather
+   than a stack of sections. Everything else scrolls over it. */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  --sw-x: 0%;
+  --sw-scale: 1;
+  --sw-dive: 0;
+  --sw-h: 64vh;
+}
+
+.stage__swimmer {
+  position: absolute;
+  left: 50%;
+  /* the swimmer's own waterline is 48.4% down its box, so this lands it
+     exactly on the pool's surface however tall the pool currently is */
+  top: calc(100% - var(--pool-h, 38%) - (var(--sw-h) * 0.484) + (var(--sw-h) * var(--sw-dive, 0)));
+  width: calc(var(--sw-h) * 1.6129);
+  height: var(--sw-h);
+  transform: translate(calc(-50% + var(--sw-x)), 0) scale(var(--sw-scale));
+  transform-origin: 50% 40%;
+  z-index: 5;
+  transition: top var(--t-slow) var(--ease-soft);
+  will-change: transform;
+}
+
+/* a soft optical falloff so the frame feels photographed, not composed */
+.stage__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  background: radial-gradient(120% 84% at 50% 44%, rgba(0, 0, 0, 0) 58%, rgba(12, 30, 40, 0.16) 100%);
+}
+
+main { position: relative; z-index: 10; }
+
+@media (max-width: 1100px) { .stage { --sw-h: 52vh; } }
+@media (max-width: 767px)  { .stage { --sw-h: 34vh; } }

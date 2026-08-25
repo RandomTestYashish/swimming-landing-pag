@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Learn To Swim</title>
+<meta name="description" content="A premium interactive beginner swimming lesson. One swimmer, one continuous body of water, one movement at a time." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Web fonts load without blocking first paint; the fallback stack holds
+     the page until they arrive, and the page is fully legible without them. -->
+<link id="webfont" rel="stylesheet" media="print"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>(function(){var l=document.getElementById("webfont");
+  if(!l) return;
+  var go=function(){ l.media="all"; };
+  l.addEventListener("load", go); setTimeout(go, 1200);
+})();</script>
+<style>
+/* =========================================================================
+   LEARN TO SWIM — VISUAL ENHANCEMENT v1
+   Structure, IA and interaction model are inherited from the approved
+   wireframe and deliberately unchanged. This layer adds the environment:
+   one continuous body of water behind the whole page, a cinematic light
+   model, an articulated swimmer, and a glass interface floating above it.
+   ========================================================================= */
+
+/* ---- 1. TOKENS ---------------------------------------------------------- */
+:root{
+  /* air — the gallery the pool sits in */
+  --paper:#FCFBF9;
+  --paper-2:#F5F3EF;
+  --paper-3:#EDEBE6;
+
+  /* ink — biased blue, so the darkest value belongs to the water world */
+  --ink:#101A22;
+  --ink-2:#33424E;
+  --ink-3:#46545F;
+  --ink-4:#55636F;
+
+  /* water, surface to floor */
+  --haze:#DFEDF3;
+  --water-0:#CBE4EF;
+  --water:#9CC9DE;
+  --water-2:#6BAAC9;
+  --deep:#175A7E;
+  --abyss:#0A3049;
+
+  /* body */
+  --skin:#E4C0A2;
+  --skin-hi:#F2D8C1;
+  --skin-sh:#BE9070;
+  --suit:#1F2C38;
+  --suit-hi:#33465A;
+  --cap:#2B3E4E;
+
+  /* lines + glass */
+  --rule:rgba(16,26,34,.10);
+  --rule-2:rgba(16,26,34,.18);
+  --rule-w:rgba(255,255,255,.55);
+  --glass:rgba(255,255,255,.58);
+  --glass-2:rgba(255,255,255,.34);
+  --glass-line:rgba(255,255,255,.70);
+  --glass-edge:rgba(16,26,34,.09);
+  --shadow-s:0 1px 2px rgba(16,26,34,.05), 0 6px 18px -8px rgba(16,26,34,.14);
+  --shadow-m:0 2px 6px rgba(16,26,34,.05), 0 24px 48px -28px rgba(23,90,126,.34);
+  --shadow-l:0 40px 90px -50px rgba(10,48,73,.45);
+
+  --shell:1440px;
+  --gutter:64px;
+  --radius:14px;
+  --radius-s:10px;
+  --radius-l:22px;
+
+  /* motion — micro / card / character / environment */
+  --t-micro:240ms;
+  --t-card:420ms;
+  --t-char:1400ms;
+  --t-env:2200ms;
+  --ease:cubic-bezier(.22,.61,.24,1);
+  --ease-soft:cubic-bezier(.4,.14,.2,1);
+
+  --font-d:"Plus Jakarta Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --font-b:"Inter","Segoe UI",Helvetica,Arial,sans-serif;
+  --font-m:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* scroll story: 0 = above water, 1 = deepest */
+  --depth:0;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:124px}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-b);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+img,svg,canvas{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+h1,h2,h3,h4,p,ul,ol,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+table{border-collapse:separate;border-spacing:0;width:100%}
+::selection{background:var(--water);color:var(--ink)}
+
+/* ---- 2. ACCESSIBILITY --------------------------------------------------- */
+:focus-visible{outline:2px solid var(--deep);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-9999px;top:0;z-index:200;background:var(--paper);
+  border:1px solid var(--rule-2);border-radius:var(--radius-s);padding:12px 18px}
+.skip:focus{left:16px;top:12px}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* ---- 3. THE ENVIRONMENT ------------------------------------------------
+   One pool behind the entire document. --depth is driven by scroll, so the
+   page travels from morning air, through the surface, into depth, and back
+   up at the closing section.                                              */
+#env{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:var(--paper)}
+#env::before{                       /* the water column itself */
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,
+    var(--paper) 0%,
+    #F7F9F9 26%,
+    #E9F2F6 46%,
+    var(--water-0) 66%,
+    #B7D9E9 86%,
+    #A3CFE3 100%);
+  opacity:calc(.16 + var(--depth) * .74);
+  transition:opacity var(--t-env) var(--ease-soft);
+}
+#env::after{                        /* atmospheric falloff at depth */
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.92), rgba(255,255,255,0) 55%),
+             linear-gradient(180deg, rgba(10,48,73,0) 34%, rgba(10,48,73,.10) 78%, rgba(10,48,73,.20) 100%);
+  opacity:calc(.25 + var(--depth) * .75);
+  transition:opacity var(--t-env) var(--ease-soft);
+}
+#env-canvas{position:absolute;inset:0;width:100%;height:100%;
+  opacity:calc(.12 + var(--depth) * .68);transition:opacity var(--t-env) var(--ease-soft)}
+
+/* shafts of light from the surface */
+.rays{position:absolute;inset:-20% -10%;
+  background:repeating-linear-gradient(102deg,
+    rgba(255,255,255,0) 0 62px,
+    rgba(255,255,255,.34) 62px 84px,
+    rgba(255,255,255,0) 84px 168px);
+  filter:blur(26px);
+  opacity:calc(var(--depth) * .5);
+  animation:rayDrift 38s ease-in-out infinite alternate;
+  transition:opacity var(--t-env) var(--ease-soft);
+  mix-blend-mode:screen;
+}
+@keyframes rayDrift{from{transform:translate3d(-3%,0,0) skewX(0deg)}to{transform:translate3d(3%,0,0) skewX(1.4deg)}}
+
+/* every page layer sits above the environment */
+.header,.progress,main,.footer{position:relative;z-index:2}
+
+/* ---- 4. LAYOUT ---------------------------------------------------------- */
+.wrap{max-width:var(--shell);margin:0 auto;padding:0 var(--gutter);width:100%}
+.section{padding:96px 0 104px;position:relative}
+.section--tight{padding:72px 0 80px}
+.section+.section::before{        /* a hairline that reads as a water level */
+  content:"";position:absolute;top:0;left:var(--gutter);right:var(--gutter);height:1px;
+  background:linear-gradient(90deg,transparent,var(--rule) 12%,var(--rule) 88%,transparent);
+}
+.grid{display:grid;gap:44px}
+.g-2{grid-template-columns:repeat(2,1fr)}
+.g-3{grid-template-columns:repeat(3,1fr)}
+.g-4{grid-template-columns:repeat(4,1fr)}
+.g-5{grid-template-columns:repeat(5,1fr)}
+.split{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);gap:60px;align-items:start}
+.split--rev{grid-template-columns:minmax(0,1fr) minmax(0,1.32fr)}
+.stack{display:flex;flex-direction:column}
+.stack>*+*{margin-top:14px}
+.row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+
+/* ---- 5. TYPOGRAPHY ------------------------------------------------------ */
+.eyebrow{
+  font-family:var(--font-m);font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);display:flex;align-items:center;gap:14px;margin-bottom:26px;
+}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--rule);max-width:200px}
+.h-hero{
+  font-family:var(--font-d);font-size:clamp(64px,6.4vw,92px);line-height:.94;
+  letter-spacing:-.045em;font-weight:800;text-wrap:balance;
+}
+.h-1{font-family:var(--font-d);font-size:clamp(34px,3.1vw,46px);line-height:1.06;
+  letter-spacing:-.032em;font-weight:700;max-width:17ch;text-wrap:balance}
+.h-2{font-family:var(--font-d);font-size:26px;line-height:1.18;letter-spacing:-.022em;font-weight:700;text-wrap:balance}
+.h-3{font-family:var(--font-d);font-size:17px;line-height:1.3;font-weight:700;letter-spacing:-.012em}
+.lede{font-size:18px;line-height:1.55;color:var(--ink-2);max-width:44ch;font-weight:400}
+.copy{color:var(--ink-2);max-width:52ch}
+.small{font-size:13px;color:var(--ink-3);line-height:1.55}
+.label{font-family:var(--font-m);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.num{display:block;font-family:var(--font-m);font-size:11px;letter-spacing:.16em;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.dots{display:block;font-family:var(--font-m);font-size:12px;letter-spacing:.26em;color:var(--ink-2)}
+.note{
+  font-family:var(--font-m);font-size:11px;letter-spacing:.05em;line-height:1.75;color:var(--ink-3);
+  border-left:1px solid var(--rule-2);padding-left:16px;
+}
+
+/* ---- 6. GLASS SYSTEM ---------------------------------------------------
+   Used only where an element must float above the water: controls, stage
+   frames, selected cards. The environment carries the rest of the depth. */
+.btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:50px;padding:0 26px;border-radius:100px;
+  font-family:var(--font-m);font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;isolation:isolate;
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);
+  border:1px solid var(--glass-line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-s);
+  transition:transform var(--t-micro) var(--ease), box-shadow var(--t-micro) var(--ease),
+             background var(--t-micro) var(--ease), border-color var(--t-micro) var(--ease),
+             color var(--t-micro) var(--ease);
+}
+.btn:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,.74);
+  border-color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1), var(--shadow-m);
+}
+.btn:active{transform:translateY(0) scale(.985);box-shadow:inset 0 1px 3px rgba(16,26,34,.14)}
+.btn--solid{
+  background:linear-gradient(180deg,#1B2A36,var(--ink));color:#fff;border-color:rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 10px 26px -14px rgba(16,26,34,.7);
+}
+.btn--solid:hover{background:linear-gradient(180deg,#24384a,#16232d);color:#fff}
+.btn--sm{min-height:40px;padding:0 18px;font-size:10px;letter-spacing:.14em}
+.btn[aria-pressed="true"],.btn[aria-selected="true"]{
+  background:linear-gradient(180deg,#1B2A36,var(--ink));color:#fff;border-color:rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2), var(--shadow-s);
+}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-group{
+  display:inline-flex;border-radius:100px;overflow:hidden;
+  background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-s);
+}
+.btn-group .btn{border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.btn-group .btn+.btn{border-left:1px solid var(--glass-edge)}
+.btn-group .btn:hover{transform:none;background:rgba(255,255,255,.6)}
+
+/* ---- 7. CARDS ----------------------------------------------------------- */
+.card{
+  border:1px solid var(--rule);border-radius:var(--radius);padding:24px;
+  background:rgba(255,255,255,.52);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  transition:transform var(--t-card) var(--ease), border-color var(--t-card) var(--ease),
+             background var(--t-card) var(--ease), box-shadow var(--t-card) var(--ease);
+}
+.card:hover{
+  transform:translateY(-3px);border-color:rgba(255,255,255,.9);
+  background:rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-m);
+}
+.card__k{display:block;font-family:var(--font-m);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-4);margin-bottom:14px}
+.card__t{display:block;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:-.015em;margin-bottom:6px}
+.card__d{display:block;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.badge{
+  display:inline-block;border-radius:100px;padding:5px 13px;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  background:rgba(255,255,255,.6);border:1px solid var(--rule);color:var(--ink-2);
+  transition:background var(--t-micro) var(--ease),color var(--t-micro) var(--ease),border-color var(--t-micro) var(--ease);
+}
+.badge--fill{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ---- 8. THE STAGE — a framed window onto the pool ---------------------- */
+.stage{
+  position:relative;border-radius:var(--radius-l);overflow:hidden;isolation:isolate;
+  height:440px;
+  background:linear-gradient(180deg,
+    #FBFCFC 0%, #FBFCFC 25.5%,
+    #F1F5F6 25.5%, #F1F5F6 42.2%,
+    #E7EFF1 42.2%, #E7EFF1 46%,
+    #D5EAF3 46%, #A7D0E3 81.5%, #84B7D4 100%);
+  border:1px solid rgba(255,255,255,.8);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-l);
+}
+.stage::before{
+  content:attr(data-label);position:absolute;top:18px;left:22px;z-index:5;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+/* soft overhead light falling into the frame */
+.stage__glow{
+  position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:radial-gradient(72% 46% at 50% -8%, rgba(255,255,255,.75), rgba(255,255,255,0) 62%);
+}
+.stage__meta{
+  position:absolute;bottom:16px;left:16px;right:16px;z-index:5;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;pointer-events:none;
+}
+.stage__meta>span{
+  font-family:var(--font-m);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(255,255,255,.7);border-radius:100px;padding:7px 14px;
+  font-variant-numeric:tabular-nums;
+  transition:opacity var(--t-card) var(--ease);
+}
+.stage>[data-swimmer]{position:absolute;inset:0;z-index:1}
+.stage>[data-swimmer] .swimmer{width:100%;height:100%}
+.stage--sm{min-height:200px}
+.stage--xs{min-height:132px}
+
+/* small placeholder wells (tiles, comparison cards) */
+.ph{
+  position:relative;border-radius:var(--radius-s);overflow:hidden;
+  background:linear-gradient(180deg,#FBFCFC 0%,#F1F5F6 30%,#E7EFF1 40%,
+    #D5EAF3 40%,#A7D0E3 62%,#5C9EC0 88%,#2A6E92 100%);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+  display:flex;align-items:center;justify-content:center;min-height:96px;
+}
+.ph .swimmer,.tile__v .swimmer{width:100%;height:100%}
+
+/* ---- 9. HEADER + PROGRESS ---------------------------------------------- */
+.header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(252,251,249,.72);
+  -webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);
+  border-bottom:1px solid var(--rule);
+}
+.header__in{display:flex;align-items:center;gap:44px;height:78px}
+.logo{
+  font-family:var(--font-d);font-size:15px;font-weight:800;letter-spacing:-.02em;
+  display:inline-flex;align-items:center;gap:10px;white-space:nowrap;
+}
+.logo::before{
+  content:"";width:26px;height:26px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 34% 30%, #fff, var(--water) 46%, var(--deep) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6), 0 2px 8px -3px rgba(23,90,126,.7);
+}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{
+  position:relative;padding:10px 16px;border-radius:100px;text-decoration:none;color:var(--ink-2);
+  font-family:var(--font-m);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  transition:color var(--t-micro) var(--ease),background var(--t-micro) var(--ease);
+}
+.nav a:hover{color:var(--ink);background:rgba(255,255,255,.6)}
+.nav a.is-active{color:var(--ink)}
+.nav a.is-active::after{
+  content:"";position:absolute;left:16px;right:16px;bottom:4px;height:1px;background:var(--deep);
+}
+.header .btn{margin-left:10px}
+
+.progress{
+  position:sticky;top:78px;z-index:59;
+  background:rgba(252,251,249,.62);
+  -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
+  border-bottom:1px solid var(--rule);
+}
+.progress__in{display:flex;align-items:center;gap:22px;height:46px}
+.progress__count{font-family:var(--font-m);font-size:11px;letter-spacing:.16em;color:var(--ink-3);
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.progress__name{font-family:var(--font-m);font-size:11px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.progress__dots{display:flex;align-items:center;flex:1;min-width:0}
+.pdot{display:flex;align-items:center;flex:1}
+.pdot__b{
+  width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:var(--ink-4);
+  transition:background var(--t-card) var(--ease),transform var(--t-card) var(--ease),box-shadow var(--t-card) var(--ease);
+}
+.pdot__l{height:1px;background:var(--rule);flex:1}
+.pdot.is-done .pdot__b{background:var(--water-2)}
+.pdot.is-current .pdot__b{
+  background:var(--deep);transform:scale(1.75);
+  box-shadow:0 0 0 5px rgba(23,90,126,.14);
+}
+.progress__bar{width:132px;height:3px;border-radius:100px;background:var(--rule);overflow:hidden;flex:0 0 auto}
+.progress__fill{height:100%;width:0%;border-radius:100px;
+  background:linear-gradient(90deg,var(--water-2),var(--deep));
+  transition:width var(--t-env) var(--ease)}
+
+/* ---- 10. HERO ----------------------------------------------------------- */
+.hero{min-height:calc(100vh - 124px);display:flex;align-items:center;padding:40px 0 0}
+.hero::before{display:none}
+.hero__grid{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:60px;align-items:center;width:100%}
+.hero__stage{height:500px}
+.stage[data-frame="tall"]{
+  background:linear-gradient(180deg,
+    #FBFCFC 0%, #FBFCFC 27.7%,
+    #F1F5F6 27.7%, #F1F5F6 37.7%,
+    #E7EFF1 37.7%, #E7EFF1 40%,
+    #D5EAF3 40%, #A7D0E3 61.3%, #5C9EC0 85%, #26688C 100%);
+}
+.stage[data-frame="deep"]{
+  background:linear-gradient(180deg,
+    #F1F5F6 0%, #F1F5F6 16.2%,
+    #E7EFF1 16.2%, #E7EFF1 20%,
+    #D5EAF3 20%, #A7D0E3 55.5%, #5C9EC0 95.1%, #3F86AC 100%);
+}
+.hero .h-hero{margin-bottom:22px}
+.scrollcue{
+  display:flex;align-items:center;gap:14px;padding:34px 0 44px;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3);
+}
+.scrollcue__line{width:1px;height:40px;background:var(--rule-2);position:relative;overflow:hidden}
+.scrollcue__line::after{content:"";position:absolute;inset:0;background:var(--deep);animation:cue 2.6s var(--ease) infinite}
+@keyframes cue{0%{transform:translateY(-100%)}60%,100%{transform:translateY(100%)}}
+
+/* ---- 11. FLOW / SEQUENCE ------------------------------------------------ */
+.flow{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.flow--5{grid-template-columns:repeat(5,1fr)}
+.flow__item{
+  position:relative;text-align:left;width:100%;padding:22px;
+  transition:background var(--t-card) var(--ease);
+}
+.flow__item+.flow__item{border-left:1px solid var(--rule)}
+.flow__item::after{
+  content:"";position:absolute;right:-5px;top:50%;width:9px;height:9px;z-index:2;
+  border-top:1px solid var(--ink-4);border-right:1px solid var(--ink-4);
+  transform:translateY(-50%) rotate(45deg);
+  transition:border-color var(--t-card) var(--ease);
+}
+.flow__item:last-child::after{display:none}
+.flow__item:hover{background:rgba(255,255,255,.55)}
+.flow__item.is-active{background:rgba(255,255,255,.82);box-shadow:inset 0 2px 0 var(--deep)}
+.flow__t{display:block;font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:-.015em;margin:14px 0 5px}
+.flow__d{display:block;font-size:12.5px;color:var(--ink-2);line-height:1.55}
+
+/* ---- 12. STEPPER -------------------------------------------------------- */
+.steps{display:flex;flex-direction:column;gap:6px}
+.step{
+  width:100%;text-align:left;display:grid;grid-template-columns:46px 1fr;gap:18px;align-items:start;
+  padding:18px 18px;border-radius:var(--radius);border:1px solid transparent;
+  transition:background var(--t-card) var(--ease),border-color var(--t-card) var(--ease),transform var(--t-card) var(--ease);
+}
+.step:hover{background:rgba(255,255,255,.55);border-color:var(--rule)}
+.step[aria-current="step"]{
+  background:rgba(255,255,255,.78);border-color:rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-m);
+}
+.step__n{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:10px;letter-spacing:.06em;color:var(--ink-3);
+  border:1px solid var(--rule-2);background:rgba(255,255,255,.5);
+  transition:background var(--t-card) var(--ease),color var(--t-card) var(--ease),border-color var(--t-card) var(--ease);
+}
+.step[aria-current="step"] .step__n{background:var(--ink);color:#fff;border-color:var(--ink)}
+.step__t{display:block;font-family:var(--font-d);font-size:15.5px;font-weight:700;letter-spacing:-.015em;margin-bottom:3px}
+.step__d{display:block;font-size:13px;color:var(--ink-2);max-width:42ch;line-height:1.55}
+
+/* ---- 13. TABS ----------------------------------------------------------- */
+.tabs{
+  display:inline-flex;padding:5px;border-radius:100px;width:fit-content;gap:4px;
+  background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-s);
+}
+.tab{
+  padding:11px 22px;border-radius:100px;color:var(--ink-2);
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  transition:background var(--t-micro) var(--ease),color var(--t-micro) var(--ease),box-shadow var(--t-micro) var(--ease);
+}
+.tab:hover{background:rgba(255,255,255,.7);color:var(--ink)}
+.tab[aria-selected="true"]{
+  background:linear-gradient(180deg,#1B2A36,var(--ink));color:#fff;
+  box-shadow:0 6px 16px -10px rgba(16,26,34,.9);
+}
+
+/* ---- 14. LEARNING TILES ------------------------------------------------- */
+.tiles{display:grid;gap:16px}
+.tiles--7{grid-template-columns:repeat(7,1fr)}
+.tiles--4{grid-template-columns:repeat(4,1fr)}
+.tile{
+  position:relative;text-align:left;padding:16px;border-radius:var(--radius);
+  display:flex;flex-direction:column;gap:12px;
+  background:rgba(255,255,255,.56);
+  border:1px solid var(--rule);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  transition:transform var(--t-card) var(--ease),border-color var(--t-card) var(--ease),
+             background var(--t-card) var(--ease),box-shadow var(--t-card) var(--ease);
+}
+.tile:hover{transform:translateY(-4px);background:rgba(255,255,255,.66);
+  border-color:rgba(255,255,255,.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-m)}
+.tile[aria-pressed="true"]{
+  transform:translateY(-4px) scale(1.022);
+  background:rgba(255,255,255,.8);
+  border-color:rgba(255,255,255,1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1), 0 0 0 1px rgba(23,90,126,.32), var(--shadow-m);
+}
+/* the selected tile is visually wired to the swimmer above it */
+.tile[aria-pressed="true"]::before{
+  content:"";position:absolute;left:50%;top:-17px;width:1px;height:17px;
+  background:linear-gradient(180deg,transparent,var(--deep));
+}
+.tile[aria-pressed="true"]::after{
+  content:"";position:absolute;left:50%;top:-20px;width:6px;height:6px;margin-left:-3px;
+  border-radius:50%;background:var(--deep);box-shadow:0 0 0 4px rgba(23,90,126,.16);
+}
+.tile__v{
+  position:relative;border-radius:var(--radius-s);overflow:hidden;height:92px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#FBFCFC 0%,#F1F5F6 30%,#E7EFF1 40%,
+    #D5EAF3 40%,#A7D0E3 62%,#5C9EC0 88%,#2A6E92 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.tile__t{display:block;font-family:var(--font-d);font-size:14px;font-weight:700;letter-spacing:-.015em}
+.tile__d{display:block;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.tile__n{display:block;font-family:var(--font-m);font-size:10px;letter-spacing:.18em;color:var(--ink-4)}
+
+/* ---- 15. COORDINATION TRACKS ------------------------------------------- */
+.track{display:grid;grid-template-columns:92px 1fr;gap:20px;align-items:center;padding:12px 0}
+.track+.track{border-top:1px solid var(--rule)}
+.track__k{font-family:var(--font-m);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.track__lane{
+  position:relative;height:30px;border-radius:100px;overflow:hidden;
+  background:rgba(255,255,255,.45);border:1px solid var(--rule);
+  box-shadow:inset 0 1px 2px rgba(16,26,34,.05);
+}
+.track__lane::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.beat{
+  position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;
+  background:var(--ink-4);
+  transition:background var(--t-micro) var(--ease),transform var(--t-micro) var(--ease),box-shadow var(--t-micro) var(--ease);
+}
+.beat.is-hot{background:var(--deep);transform:scale(1.5);box-shadow:0 0 0 5px rgba(23,90,126,.16)}
+.beat--wide{width:38px;border-radius:100px;margin-left:-19px}
+.playhead{position:absolute;top:0;bottom:0;width:2px;left:0;z-index:2;
+  background:linear-gradient(180deg,rgba(23,90,126,0),var(--deep) 22%,var(--deep) 78%,rgba(23,90,126,0));}
+
+/* ---- 16. COMPARISON TABLE ---------------------------------------------- */
+.cmp{
+  border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  box-shadow:inset 0 0 0 1px var(--rule), var(--shadow-s);
+}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;font-size:13.5px;
+  border-bottom:1px solid var(--rule);transition:background var(--t-card) var(--ease)}
+.cmp tr:last-child th,.cmp tr:last-child td{border-bottom:0}
+.cmp thead th{
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-2);background:rgba(255,255,255,.5);
+}
+.cmp tbody th{
+  font-family:var(--font-m);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);width:158px;font-weight:400;
+}
+.cmp td.is-active{background:rgba(155,201,222,.2);color:var(--ink);font-weight:500}
+.cmp th.is-active{background:var(--ink);color:#fff}
+
+/* ---- 17. DO / AVOID ----------------------------------------------------- */
+.vs{
+  display:grid;grid-template-columns:1fr auto 1fr;border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  transition:box-shadow var(--t-card) var(--ease),transform var(--t-card) var(--ease);
+}
+.vs:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), var(--shadow-m)}
+.vs__side{padding:20px}
+.vs__side--avoid{background:rgba(16,26,34,.028)}
+.vs__mid{
+  width:46px;display:flex;align-items:center;justify-content:center;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+  font-family:var(--font-m);font-size:9.5px;letter-spacing:.12em;color:var(--ink-4);
+}
+.vs__k{display:block;font-family:var(--font-m);font-size:9.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
+.vs__side--avoid .vs__k{color:#A8705E}
+
+/* ---- 18. LEARNING PATH -------------------------------------------------- */
+.path{
+  display:grid;grid-template-columns:repeat(9,1fr);border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.path__i{
+  position:relative;text-align:left;padding:22px 16px 24px;min-height:164px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:background var(--t-card) var(--ease);
+}
+.path__i+.path__i{border-left:1px solid var(--rule)}
+.path__i:hover{background:rgba(255,255,255,.55)}
+.path__i .marker{
+  position:relative;z-index:2;width:11px;height:11px;border-radius:50%;background:var(--ink-4);
+  transition:background var(--t-card) var(--ease),box-shadow var(--t-card) var(--ease),transform var(--t-card) var(--ease);
+}
+.path__i::before{content:"";position:absolute;left:21px;right:-21px;top:27px;height:1px;background:var(--rule);z-index:1}
+.path__i:last-child::before{display:none}
+.path__i.is-done::before{background:var(--water-2)}
+.path__i.is-done .marker{background:var(--water-2)}
+.path__i.is-current{background:rgba(255,255,255,.78)}
+.path__i.is-current .marker{background:var(--deep);transform:scale(1.25);box-shadow:0 0 0 5px rgba(23,90,126,.16)}
+.path__i .state{font-family:var(--font-m);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-4)}
+.path__i.is-current .state{color:var(--deep)}
+.path__t{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:-.012em;line-height:1.25}
+
+/* ---- 19. PRACTICE PLAN -------------------------------------------------- */
+.plan{
+  border-radius:var(--radius);overflow:hidden;
+  background:rgba(255,255,255,.44);
+  border:1px solid var(--rule);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.plan__r{display:grid;grid-template-columns:100px 1fr 240px;gap:20px;align-items:center;
+  padding:16px 22px;transition:background var(--t-card) var(--ease)}
+.plan__r+.plan__r{border-top:1px solid var(--rule)}
+.plan__r:hover{background:rgba(255,255,255,.55)}
+.plan__r.is-total{background:rgba(155,201,222,.18);font-weight:500}
+.plan__min{font-family:var(--font-m);font-size:12px;letter-spacing:.1em;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.plan__bar{height:6px;border-radius:100px;background:rgba(16,26,34,.07);overflow:hidden}
+.plan__bar i{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,var(--water),var(--water-2))}
+.plan__r.is-total .plan__bar i{background:linear-gradient(90deg,var(--water-2),var(--deep))}
+
+/* ---- 20. ACCORDION ------------------------------------------------------ */
+.acc{display:flex;flex-direction:column}
+.acc__i{border-top:1px solid var(--rule)}
+.acc__i:last-child{border-bottom:1px solid var(--rule)}
+.acc__b{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:28px;
+  padding:26px 6px;text-align:left;
+  font-family:var(--font-d);font-size:17px;font-weight:700;letter-spacing:-.02em;
+  transition:padding-left var(--t-card) var(--ease),color var(--t-card) var(--ease);
+}
+.acc__b:hover{padding-left:14px;color:var(--deep)}
+.acc__b .sign{
+  flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--rule-2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-m);font-size:15px;font-weight:400;color:var(--ink-3);line-height:1;
+  transition:transform var(--t-card) var(--ease),background var(--t-card) var(--ease),color var(--t-card) var(--ease);
+}
+.acc__b[aria-expanded="true"] .sign{transform:rotate(135deg);background:var(--ink);color:#fff;border-color:var(--ink)}
+.acc__p{overflow:hidden;height:0;transition:height var(--t-card) var(--ease)}
+.acc__p>div{padding:0 6px 28px;color:var(--ink-2);max-width:66ch;font-size:14.5px;line-height:1.65}
+
+/* ---- 21. SAFETY --------------------------------------------------------- */
+.safety{
+  border-radius:var(--radius-l);padding:52px;
+  background:rgba(255,255,255,.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95), var(--shadow-l);
+}
+.safety .card{background:rgba(255,255,255,.5)}
+
+/* ---- 22. FOOTER --------------------------------------------------------- */
+.footer{border-top:1px solid var(--rule);padding:56px 0;color:var(--ink-3);font-size:12.5px}
+.footer__in{display:flex;justify-content:space-between;gap:36px;flex-wrap:wrap}
+
+/* ---- 23. SCROLL REVEAL -------------------------------------------------- */
+.reveal{opacity:0;transform:translateY(20px);
+  transition:opacity var(--t-char) var(--ease),transform var(--t-char) var(--ease)}
+.reveal.is-in{opacity:1;transform:none}
+
+/* =========================================================================
+   24. THE SWIMMER
+   One articulated body, cloned everywhere. Twelve independently rotatable
+   joints; each pose is a set of custom properties, and every joint
+   transitions its own transform — so a state change is the body performing
+   the movement, never a swap between two pictures.
+   ========================================================================= */
+.swimmer{
+  width:100%;height:100%;display:block;
+  --x:0px; --y:0px; --rot:0deg; --flip:1; --scale:1;
+  --trunk:0deg; --head:0deg; --face:0deg;
+  --armF:0deg; --elbF:0deg; --wriF:0deg;
+  --armB:0deg; --elbB:0deg; --wriB:0deg;
+  --legF:0deg; --kneeF:0deg; --ankF:10deg;
+  --legB:0deg; --kneeB:0deg; --ankB:10deg;
+  --bubbles:0; --annot:0; --trail:0; --wall:0; --ripple:0; --lit:1;
+  --dur:var(--t-char);
+}
+.sw-figure{
+  transform:translate(var(--x),var(--y)) rotate(var(--rot)) scale(var(--scale),calc(var(--scale) * var(--flip)));
+  transform-origin:620px 300px;
+  transition:transform var(--dur) var(--ease);
+}
+.sw-trunk{transform:rotate(var(--trunk));transform-origin:620px 300px;transition:transform var(--dur) var(--ease)}
+.sw-head {transform:rotate(var(--head)); transform-origin:430px 296px;transition:transform var(--dur) var(--ease)}
+.sw-skull{transform:rotate(var(--face)); transform-origin:368px 288px;transition:transform var(--dur) var(--ease)}
+.sw-armF {transform:rotate(var(--armF)); transform-origin:430px 278px;transition:transform var(--dur) var(--ease)}
+.sw-elbF {transform:rotate(var(--elbF)); transform-origin:340px 278px;transition:transform var(--dur) var(--ease)}
+.sw-wriF {transform:rotate(var(--wriF)); transform-origin:262px 278px;transition:transform var(--dur) var(--ease)}
+.sw-armB {transform:rotate(var(--armB)); transform-origin:430px 312px;transition:transform var(--dur) var(--ease)}
+.sw-elbB {transform:rotate(var(--elbB)); transform-origin:340px 312px;transition:transform var(--dur) var(--ease)}
+.sw-wriB {transform:rotate(var(--wriB)); transform-origin:262px 312px;transition:transform var(--dur) var(--ease)}
+.sw-legF {transform:rotate(var(--legF)); transform-origin:620px 288px;transition:transform var(--dur) var(--ease)}
+.sw-kneeF{transform:rotate(var(--kneeF));transform-origin:742px 288px;transition:transform var(--dur) var(--ease)}
+.sw-ankF {transform:rotate(var(--ankF)); transform-origin:858px 288px;transition:transform var(--dur) var(--ease)}
+.sw-legB {transform:rotate(var(--legB)); transform-origin:620px 312px;transition:transform var(--dur) var(--ease)}
+.sw-kneeB{transform:rotate(var(--kneeB));transform-origin:742px 312px;transition:transform var(--dur) var(--ease)}
+.sw-ankB {transform:rotate(var(--ankB)); transform-origin:858px 312px;transition:transform var(--dur) var(--ease)}
+
+/* materials — the far side of the body sits back in the water */
+/* A light rim keeps overlapping limbs legible — the near arm can cross the
+   head without the silhouette turning into one mass. */
+.sw-skin,.sw-suit,.sw-cap{stroke:rgba(255,255,255,.62);stroke-width:2.6;stroke-linejoin:round}
+.sw-skin{fill:url(#gSkin) #E4C0A2}
+.sw-suit{fill:url(#gSuit) #1F2C38}
+.sw-cap {fill:url(#gCap) #2B3E4E}
+.sw-goggle{fill:#16222C;opacity:.88}
+.sw-strap{fill:none;stroke:#16222C;stroke-width:4;opacity:.7;stroke-linecap:round}
+.sw-back .sw-skin{fill:url(#gSkinBack) #BE9070}
+.sw-back .sw-suit{fill:#3D4F60}
+.sw-back .sw-skin,.sw-back .sw-suit{stroke:rgba(255,255,255,.3);stroke-width:2}
+.sw-back{opacity:.82}
+.sw-hi{fill:#fff;opacity:.3;stroke:none}
+
+/* environment inside the frame */
+.sw-waterline{opacity:.9}
+.sw-floor line{stroke:rgba(10,48,73,.16);stroke-width:2}
+.sw-rope circle{fill:rgba(255,255,255,.5)}
+.sw-rope circle:nth-child(even){fill:rgba(23,90,126,.22)}
+.sw-wall{opacity:var(--wall);transition:opacity var(--dur) var(--ease)}
+.sw-wall rect{fill:url(#gWall)}
+.sw-wall line{stroke:rgba(255,255,255,.5);stroke-width:1.5}
+
+/* caustic light playing across the body */
+.sw-caustic{opacity:calc(var(--lit) * .5);mix-blend-mode:overlay;filter:blur(9px);pointer-events:none}
+.sw-caustic ellipse{fill:#fff}
+.swimmer .sw-caustic{animation:bodyCaustic 14s ease-in-out infinite alternate}
+@keyframes bodyCaustic{
+  from{transform:translate3d(-10px,-4px,0) scale(1)}
+  to  {transform:translate3d(14px,6px,0) scale(1.12)}
+}
+
+/* motion streaks — the water the swimmer has just moved through */
+.sw-trail{opacity:var(--trail);transition:opacity var(--dur) var(--ease)}
+.sw-trail path{fill:none;stroke:rgba(255,255,255,.72);stroke-linecap:round}
+
+/* exhaled air */
+.sw-bubbles{opacity:var(--bubbles);transition:opacity var(--dur) var(--ease)}
+.sw-bubbles circle{fill:rgba(255,255,255,.72);stroke:rgba(255,255,255,.9);stroke-width:1.5}
+.swimmer--bubbles .sw-bubbles circle{animation:rise 3.4s var(--ease-soft) infinite}
+.swimmer--bubbles .sw-bubbles circle:nth-child(2){animation-delay:.5s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(3){animation-delay:1s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(4){animation-delay:1.5s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(5){animation-delay:2s}
+.swimmer--bubbles .sw-bubbles circle:nth-child(6){animation-delay:2.5s}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}
+  18%{opacity:1}100%{transform:translateY(-120px) scale(1.15);opacity:0}}
+
+/* the surface answers the body */
+.sw-ripple{opacity:0}
+.sw-ripple ellipse{fill:none;stroke:rgba(255,255,255,.9);stroke-width:2}
+.swimmer--entering .sw-ripple,.swimmer--facein .sw-ripple,.swimmer--bubbles .sw-ripple,
+.swimmer--breathing .sw-ripple{opacity:1}
+.swimmer--entering .sw-ripple ellipse,.swimmer--facein .sw-ripple ellipse,
+.swimmer--bubbles .sw-ripple ellipse,.swimmer--breathing .sw-ripple ellipse{
+  animation:ripple 4.2s var(--ease-soft) infinite;transform-origin:center;
+}
+.sw-ripple ellipse:nth-child(2){animation-delay:1.4s}
+.sw-ripple ellipse:nth-child(3){animation-delay:2.8s}
+@keyframes ripple{0%{transform:scale(.35);opacity:0}
+  22%{opacity:.85}100%{transform:scale(1.9);opacity:0}}
+
+/* annotation layer */
+.sw-annot{opacity:var(--annot);transition:opacity var(--t-card) var(--ease)}
+.sw-annot line{stroke:rgba(16,26,34,.32);stroke-width:1.5;stroke-dasharray:2 6;stroke-linecap:round}
+.sw-annot circle{fill:var(--deep)}
+.sw-annot rect{fill:rgba(255,255,255,.82);stroke:rgba(255,255,255,.9)}
+.sw-annot text{font-family:var(--font-m);font-size:17px;letter-spacing:.16em;fill:var(--ink-2)}
+
+/* continuous loops */
+.swimmer--kicking .sw-legF{animation:kickF 1.15s ease-in-out infinite}
+.swimmer--kicking .sw-legB{animation:kickB 1.15s ease-in-out infinite}
+.swimmer--kicking .sw-kneeF{animation:kneeF 1.15s ease-in-out infinite}
+.swimmer--kicking .sw-kneeB{animation:kneeB 1.15s ease-in-out infinite}
+@keyframes kickF{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(17deg)}}
+@keyframes kickB{0%,100%{transform:rotate(17deg)}50%{transform:rotate(-15deg)}}
+@keyframes kneeF{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-16deg)}}
+@keyframes kneeB{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(14deg)}}
+.swimmer--dolphin .sw-legF,.swimmer--dolphin .sw-legB{animation:dolphin 1.5s ease-in-out infinite}
+.swimmer--dolphin .sw-kneeF,.swimmer--dolphin .sw-kneeB{animation:dolphinKnee 1.5s ease-in-out infinite}
+@keyframes dolphin{0%,100%{transform:rotate(-17deg)}50%{transform:rotate(21deg)}}
+@keyframes dolphinKnee{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-14deg)}}
+.swimmer--idle .sw-figure{animation:bob 9s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate3d(0,0,0) rotate(0deg)}
+  50%{transform:translate3d(-14px,-16px,0) rotate(-1.1deg)}}
+
+/* ---- 25. POSE LIBRARY --------------------------------------------------- */
+.swimmer--standing   {--face:-88deg;--trunk:90deg;--legF:85deg;--legB:95deg;--armF:166deg;--armB:198deg;--elbF:18deg;--elbB:-16deg;--ankF:-6deg;--ankB:-4deg;--scale:.97;--y:4px}
+.swimmer--entering   {--face:-62deg;--trunk:74deg;--legF:70deg;--legB:104deg;--kneeF:24deg;--armF:142deg;--armB:212deg;--elbF:30deg;--elbB:-26deg;--ankF:-4deg;--scale:.97;--y:2px}
+.swimmer--comfortable{--face:-46deg;--trunk:56deg;--legF:71deg;--legB:99deg;--armF:112deg;--armB:156deg;--elbF:24deg;--elbB:-20deg;--scale:.97;--y:4px}
+.swimmer--facein     {--face:10deg;--trunk:-14deg;--legF:78deg;--legB:100deg;--armF:-12deg;--armB:20deg;--elbF:-8deg;--elbB:8deg;--scale:.97;--y:2px}
+.swimmer--bubbles    {--face:14deg;--trunk:-22deg;--legF:76deg;--legB:102deg;--armF:-16deg;--armB:18deg;--elbF:-6deg;--elbB:8deg;--bubbles:1;--scale:.97;--y:2px}
+.swimmer--breathing  {--face:-34deg;--trunk:22deg;--head:26deg;--legF:82deg;--legB:98deg;--armF:-6deg;--armB:26deg;--elbF:-14deg;--elbB:10deg;--scale:.97;--y:2px}
+
+.swimmer--floating   {--trunk:0deg;--legF:1deg;--legB:-1deg;--armF:-15deg;--armB:13deg;--elbF:-6deg;--elbB:6deg;--ankF:12deg;--ankB:10deg;--lit:1}
+.swimmer--floatback  {--flip:-1;--trunk:0deg;--legF:2deg;--legB:-2deg;--armF:-10deg;--armB:10deg;--elbF:-8deg;--ankF:12deg}
+.swimmer--floatstar  {--trunk:0deg;--legF:-24deg;--legB:26deg;--armF:-32deg;--armB:34deg;--elbF:10deg;--elbB:-8deg;--ankF:8deg;--ankB:8deg}
+
+.swimmer--normal     {--trunk:-11deg;--head:30deg;--legF:24deg;--legB:30deg;--kneeF:-44deg;--kneeB:-36deg;--armF:-14deg;--armB:12deg;--elbF:-24deg;--ankF:-16deg;--ankB:-12deg}
+.swimmer--streamlined{--trunk:0deg;--head:0deg;--legF:0deg;--legB:0deg;--kneeF:0deg;--kneeB:0deg;--armF:0deg;--armB:0deg;--elbF:0deg;--elbB:0deg;--ankF:14deg;--ankB:14deg;--trail:1}
+
+.swimmer--wall       {--trunk:8deg;--legF:62deg;--legB:68deg;--kneeF:-94deg;--kneeB:-90deg;--armF:-8deg;--armB:6deg;--ankF:-30deg;--ankB:-28deg;--wall:1;--x:150px}
+.swimmer--push       {--trunk:3deg;--legF:24deg;--legB:28deg;--kneeF:-36deg;--kneeB:-32deg;--armF:-4deg;--armB:2deg;--ankF:-6deg;--wall:1;--x:82px}
+.swimmer--extend     {--trunk:0deg;--legF:5deg;--legB:7deg;--armF:0deg;--armB:0deg;--ankF:12deg;--wall:1;--x:18px;--trail:1}
+.swimmer--gliding    {--trunk:0deg;--legF:0deg;--legB:0deg;--armF:0deg;--armB:0deg;--ankF:14deg;--ankB:14deg;--x:-64px;--trail:1}
+.swimmer--glidelong  {--trunk:0deg;--legF:0deg;--legB:0deg;--armF:0deg;--armB:0deg;--ankF:14deg;--ankB:14deg;--x:-142px;--trail:1}
+
+.swimmer--kicking      {--trunk:0deg;--armF:-9deg;--armB:8deg;--ankF:14deg;--ankB:14deg;--trail:1}
+.swimmer--kickstraight {--trunk:0deg;--legF:0deg;--legB:0deg;--kneeF:0deg;--kneeB:0deg;--armF:-9deg;--armB:8deg;--ankF:14deg;--trail:1}
+.swimmer--kickdown     {--trunk:0deg;--legF:21deg;--legB:-13deg;--kneeF:-14deg;--kneeB:8deg;--armF:-9deg;--armB:8deg;--ankF:16deg;--ankB:4deg;--trail:1}
+.swimmer--kickup       {--trunk:0deg;--legF:-17deg;--legB:19deg;--kneeF:9deg;--kneeB:-13deg;--armF:-9deg;--armB:8deg;--ankF:4deg;--ankB:16deg;--trail:1}
+
+.swimmer--freestyle    {--trunk:0deg;--armF:-14deg;--armB:156deg;--elbF:-10deg;--elbB:-26deg;--ankF:14deg;--ankB:14deg;--trail:1}
+.swimmer--breaststroke {--trunk:0deg;--armF:-6deg;--armB:6deg;--elbF:-12deg;--elbB:12deg;--legF:-11deg;--legB:11deg;--kneeF:-14deg;--kneeB:14deg;--trail:1}
+.swimmer--backstroke   {--flip:-1;--trunk:0deg;--armF:-12deg;--armB:158deg;--elbF:-8deg;--elbB:-24deg;--ankF:14deg;--trail:1}
+.swimmer--butterfly    {--trunk:0deg;--armF:-164deg;--armB:-156deg;--elbF:-18deg;--elbB:-18deg;--legF:-13deg;--legB:-9deg;--trail:1}
+
+.swimmer--headhigh   {--trunk:-13deg;--head:40deg;--legF:32deg;--legB:36deg;--kneeF:-28deg;--kneeB:-24deg;--ankF:-14deg}
+.swimmer--hipssink   {--trunk:-19deg;--legF:38deg;--legB:42deg;--kneeF:-10deg;--ankF:-10deg}
+.swimmer--bentknees  {--legF:7deg;--legB:11deg;--kneeF:-70deg;--kneeB:-62deg;--ankF:-24deg;--ankB:-20deg}
+.swimmer--heldbreath {--trunk:0deg;--head:13deg;--legF:5deg;--legB:9deg;--armF:-11deg;--armB:10deg;--bubbles:0}
+.swimmer--exhaling   {--trunk:0deg;--legF:2deg;--legB:6deg;--armF:-11deg;--armB:10deg;--bubbles:1;--ankF:12deg}
+
+.swimmer--annotated{--annot:1}
+.swimmer--annotated.swimmer--normal{--annot:0}
+.swimmer--mini .sw-annot,.swimmer--mini .sw-rope,.swimmer--mini .sw-floor{display:none}
+
+/* ---- 26. REDUCED MOTION ------------------------------------------------- */
+@media (prefers-reduced-motion: reduce){
+  :root{--t-micro:1ms;--t-card:1ms;--t-char:1ms;--t-env:1ms}
+  html{scroll-behavior:auto}
+  .swimmer *,.sw-figure{transition:none!important;animation:none!important}
+  .stage::after,.rays,.scrollcue__line::after,.sw-caustic{animation:none!important}
+  .reveal{opacity:1;transform:none}
+  .btn:hover,.card:hover,.tile:hover,.vs:hover{transform:none}
+}
+
+/* ---- 27. VIEWPORT RANGE 1280 → 1600 ------------------------------------ */
+@media (max-width:1420px){:root{--gutter:48px}}
+@media (max-width:1320px){
+  .tiles--7{grid-template-columns:repeat(4,1fr)}
+  .path{grid-template-columns:repeat(5,1fr)}
+  .path__i:nth-child(5)::before{display:none}
+}
+/* Mobile is not designed yet — the grids simply stack so the structure
+   survives. The M-web pass is a separate exercise.                        */
+@media (max-width:900px){
+  .split,.split--rev,.g-2,.g-3,.g-4,.g-5,.hero__grid,.flow,.flow--5,
+  .tiles--7,.tiles--4,.path{grid-template-columns:1fr}
+  .plan__r{grid-template-columns:80px 1fr}
+  .plan__bar{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#hero">Skip to content</a>
+
+<!-- =======================================================================
+     THE ENVIRONMENT — one body of water behind the whole document.
+     ======================================================================= -->
+<div id="env" aria-hidden="true">
+  <div class="rays"></div>
+  <canvas id="env-canvas"></canvas>
+</div>
+
+<!-- Shared materials. Declared once; every cloned swimmer references them. -->
+<svg id="sw-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <linearGradient id="gSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6E1CD"/><stop offset=".46" stop-color="#E4C0A2"/><stop offset="1" stop-color="#C2926E"/>
+    </linearGradient>
+    <linearGradient id="gSkinBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DCB79A"/><stop offset="1" stop-color="#A8805F"/>
+    </linearGradient>
+    <linearGradient id="gSuit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A4F64"/><stop offset="1" stop-color="#18242E"/>
+    </linearGradient>
+    <linearGradient id="gCap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#43596C"/><stop offset="1" stop-color="#22323F"/>
+    </linearGradient>
+    <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D5EAF3" stop-opacity=".95"/>
+      <stop offset=".34" stop-color="#A7D0E3" stop-opacity=".95"/>
+      <stop offset=".72" stop-color="#5C9EC0" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#1B5E82" stop-opacity=".95"/>
+    </linearGradient>
+    <linearGradient id="gSurface" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E7F2F7"/><stop offset="1" stop-color="#8FB9CE"/>
+    </linearGradient>
+    <linearGradient id="gRay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="clipWater"><rect x="-400" y="262" width="2000" height="438"/></clipPath>
+  </defs>
+</svg>
+
+<!-- =======================================================================
+     THE SWIMMER — cloned into every [data-swimmer] host.
+     Twelve independently rotatable joints; one character throughout.
+     ======================================================================= -->
+<template id="tpl-swimmer">
+  <svg class="swimmer" viewBox="40 0 1120 700" role="img" preserveAspectRatio="xMidYMid meet"
+       aria-label="Illustration of a swimmer in a pool">
+
+    <!-- ---------- the room the pool sits in ---------- -->
+    <g class="sw-room" aria-hidden="true">
+      <rect x="-400" y="-400" width="2000" height="662" fill="#FBFCFC"></rect>
+      <rect x="-400" y="176" width="2000" height="86" fill="#F1F5F6"></rect>
+      <line x1="-400" y1="176" x2="1600" y2="176" stroke="rgba(16,26,34,.07)" stroke-width="1.5"></line>
+      <rect x="-400" y="246" width="2000" height="16" fill="#E7EFF1"></rect>
+    </g>
+
+    <!-- ---------- the water column ---------- -->
+    <rect class="sw-water" x="-400" y="262" width="2000" height="438" fill="url(#gWater)" fill-opacity=".95"></rect>
+
+    <g clip-path="url(#clipWater)">
+      <!-- shafts of light from the surface -->
+      <g class="sw-rays" opacity=".5">
+        <path d="M300,262 L232,700 L338,700 L376,262 Z" fill="url(#gRay)"></path>
+        <path d="M624,262 L584,700 L656,700 L684,262 Z" fill="url(#gRay)"></path>
+        <path d="M904,262 L878,700 L940,700 L970,262 Z" fill="url(#gRay)"></path>
+      </g>
+      <!-- caustic light on the water volume -->
+      <g class="sw-causticW">
+        <ellipse cx="180" cy="352" rx="78" ry="12" fill="#fff" opacity=".3"></ellipse>
+        <ellipse cx="352" cy="336" rx="104" ry="10" fill="#fff" opacity=".26"></ellipse>
+        <ellipse cx="560" cy="368" rx="88" ry="13" fill="#fff" opacity=".24"></ellipse>
+        <ellipse cx="742" cy="340" rx="112" ry="11" fill="#fff" opacity=".22"></ellipse>
+        <ellipse cx="960" cy="366" rx="82" ry="12" fill="#fff" opacity=".22"></ellipse>
+        <ellipse cx="286" cy="438" rx="120" ry="12" fill="#fff" opacity=".15"></ellipse>
+        <ellipse cx="640" cy="452" rx="140" ry="13" fill="#fff" opacity=".13"></ellipse>
+        <ellipse cx="962" cy="430" rx="100" ry="11" fill="#fff" opacity=".12"></ellipse>
+        <ellipse cx="440" cy="518" rx="150" ry="12" fill="#fff" opacity=".08"></ellipse>
+        <ellipse cx="760" cy="586" rx="170" ry="12" fill="#fff" opacity=".06"></ellipse>
+      </g>
+      <!-- lane rope + pool floor give the volume scale -->
+      <g class="sw-rope" opacity=".5"></g>
+      <g class="sw-floor" opacity=".7">
+        <line x1="-400" y1="606" x2="1600" y2="606"></line>
+        <line x1="-400" y1="646" x2="1600" y2="646" opacity=".45"></line>
+      </g>
+      <!-- pool wall, shown for the push &amp; glide sequence -->
+      <g class="sw-wall">
+        <rect x="1078" y="262" width="82" height="438"></rect>
+        <line x1="1078" y1="352" x2="1160" y2="352"></line>
+        <line x1="1078" y1="442" x2="1160" y2="442"></line>
+        <line x1="1078" y1="532" x2="1160" y2="532"></line>
+        <line x1="1078" y1="622" x2="1160" y2="622"></line>
+        <line x1="1118" y1="262" x2="1118" y2="700"></line>
+      </g>
+    </g>
+
+    <!-- ---------- the waterline ---------- -->
+    <g class="sw-waterline">
+      <rect x="-400" y="252" width="2000" height="20" fill="url(#gSurface)" opacity=".75"></rect>
+      <path d="M-400,262 C-180,257 60,267 400,262 C540,257 620,267 760,262 C900,257 1120,267 1600,262"
+            fill="none" stroke="rgba(255,255,255,.95)" stroke-width="2.5"></path>
+    </g>
+
+    <!-- ---------- motion through the water ---------- -->
+    <g class="sw-trail">
+      <path d="M968,254 C1030,248 1082,254 1146,246" stroke-width="3.5" opacity=".8"></path>
+      <path d="M986,332 C1046,340 1096,332 1150,342" stroke-width="3" opacity=".6"></path>
+      <path d="M1012,296 C1064,292 1108,298 1152,292" stroke-width="2.5" opacity=".45"></path>
+    </g>
+
+    <!-- ---------- the body ---------- -->
+    <g class="sw-figure">
+
+      <!-- far leg — hangs off the hip -->
+      <g class="sw-back">
+        <g class="sw-legB">
+          <path class="sw-skin" d="M620,286 L742,294 A18 18 0 0 1 742,330 L620,338 A26 26 0 0 0 620,286 Z"></path>
+          <g class="sw-kneeB">
+            <path class="sw-skin" d="M742,295 L858,302 A10 10 0 0 1 858,322 L742,329 A17 17 0 0 0 742,295 Z"></path>
+            <g class="sw-ankB"><path class="sw-skin" d="M858,303 L918,308 A4 4 0 0 1 918,316 L858,321 A9 9 0 0 0 858,303 Z"></path></g>
+          </g>
+        </g>
+      </g>
+
+      <!-- near leg -->
+      <g class="sw-legF">
+        <path class="sw-skin" d="M620,262 L742,270 A18 18 0 0 1 742,306 L620,314 A26 26 0 0 0 620,262 Z"></path>
+        <path class="sw-hi" d="M632,270 L738,276 A5 5 0 0 1 738,282 L632,283 Z" opacity=".16"></path>
+        <g class="sw-kneeF">
+          <path class="sw-skin" d="M742,271 L858,278 A10 10 0 0 1 858,298 L742,305 A17 17 0 0 0 742,271 Z"></path>
+          <g class="sw-ankF"><path class="sw-skin" d="M858,279 L918,284 A4 4 0 0 1 918,292 L858,297 A9 9 0 0 0 858,279 Z"></path></g>
+        </g>
+      </g>
+
+      <!-- trunk carries head and near arm -->
+      <g class="sw-trunk">
+        <!-- far arm — behind the torso, but carried by it -->
+        <g class="sw-back">
+          <g class="sw-armB">
+            <path class="sw-skin" d="M430,294 L340,298 A14 14 0 0 1 340,326 L430,330 A18 18 0 0 0 430,294 Z"></path>
+            <g class="sw-elbB">
+              <path class="sw-skin" d="M340,299 L262,302 A10 10 0 0 1 262,322 L340,325 A13 13 0 0 0 340,299 Z"></path>
+              <g class="sw-wriB"><path class="sw-skin" d="M262,300 L222,302 A9 13 0 0 1 222,324 L262,324 A11 11 0 0 0 262,300 Z"></path></g>
+            </g>
+          </g>
+        </g>
+        <path class="sw-skin" d="M434,258 C500,250 566,256 624,268 C644,274 650,294 646,306 C642,318 630,328 620,334 C554,346 490,344 438,334 C418,326 410,306 414,288 C418,270 424,262 434,258 Z"></path>
+        <path class="sw-hi" d="M444,266 C500,259 556,264 610,274 C618,279 618,286 610,289 C556,280 500,275 446,280 C438,276 438,270 444,266 Z" opacity=".18"></path>
+        <path class="sw-suit" d="M568,272 C598,268 620,272 636,282 C644,296 642,312 630,324 C612,334 586,336 566,330 C574,312 574,292 568,272 Z"></path>
+
+        <g class="sw-armF">
+          <path class="sw-skin" d="M430,260 L340,264 A14 14 0 0 1 340,292 L430,296 A18 18 0 0 0 430,260 Z"></path>
+          <path class="sw-hi" d="M422,268 L346,270 A4 4 0 0 1 346,276 L422,277 Z" opacity=".16"></path>
+          <g class="sw-elbF">
+            <path class="sw-skin" d="M340,265 L262,268 A10 10 0 0 1 262,288 L340,291 A13 13 0 0 0 340,265 Z"></path>
+            <g class="sw-wriF"><path class="sw-skin" d="M262,266 L222,268 A9 13 0 0 1 222,290 L262,290 A11 11 0 0 0 262,266 Z"></path></g>
+          </g>
+        </g>
+
+        <g class="sw-head">
+          <path class="sw-skin" d="M434,280 L404,276 A14 14 0 0 0 404,306 L434,312 A16 16 0 0 0 434,280 Z"></path>
+          <g class="sw-skull">
+            <ellipse class="sw-cap" cx="368" cy="288" rx="35" ry="31"></ellipse>
+            <path class="sw-skin" d="M344,262 C330,272 325,290 331,304 C337,317 351,323 364,319 C354,306 348,286 352,264 Z"></path>
+            <path class="sw-goggle" d="M330,272 C342,263 357,262 368,266 L368,282 C356,276 342,279 331,287 Z"></path>
+            <path class="sw-strap" d="M368,272 C384,268 396,272 402,280"></path>
+            <ellipse class="sw-hi" cx="362" cy="268" rx="14" ry="6" opacity=".22"></ellipse>
+          </g>
+        </g>
+      </g>
+
+      <!-- caustic light playing over the body -->
+      <g class="sw-caustic">
+        <ellipse cx="520" cy="288" rx="96" ry="24"></ellipse>
+        <ellipse cx="756" cy="298" rx="72" ry="17"></ellipse>
+        <ellipse cx="372" cy="282" rx="52" ry="19"></ellipse>
+      </g>
+    </g>
+
+    <!-- ---------- what the water does back ---------- -->
+    <g class="sw-ripple">
+      <ellipse cx="430" cy="262" rx="82" ry="12"></ellipse>
+      <ellipse cx="430" cy="262" rx="82" ry="12"></ellipse>
+      <ellipse cx="430" cy="262" rx="82" ry="12"></ellipse>
+    </g>
+    <g class="sw-bubbles">
+      <circle cx="332" cy="342" r="7"></circle>
+      <circle cx="358" cy="364" r="5"></circle>
+      <circle cx="306" cy="380" r="9"></circle>
+      <circle cx="346" cy="400" r="6"></circle>
+      <circle cx="318" cy="416" r="4"></circle>
+      <circle cx="366" cy="332" r="4.5"></circle>
+    </g>
+
+    <!-- ---------- educational annotation ---------- -->
+    <g class="sw-annot">
+      <circle cx="300" cy="276" r="4"></circle><line x1="300" y1="276" x2="300" y2="222"></line>
+      <rect x="258" y="186" width="86" height="32" rx="16"></rect><text x="301" y="208" text-anchor="middle">ARMS</text>
+      <circle cx="400" cy="256" r="4"></circle><line x1="400" y1="256" x2="400" y2="164"></line>
+      <rect x="358" y="128" width="86" height="32" rx="16"></rect><text x="401" y="150" text-anchor="middle">HEAD</text>
+      <circle cx="620" cy="306" r="4"></circle><line x1="620" y1="306" x2="620" y2="400"></line>
+      <rect x="578" y="404" width="84" height="32" rx="16"></rect><text x="620" y="426" text-anchor="middle">HIPS</text>
+      <circle cx="742" cy="286" r="4"></circle><line x1="742" y1="286" x2="800" y2="196"></line>
+      <rect x="758" y="158" width="84" height="32" rx="16"></rect><text x="800" y="180" text-anchor="middle">LEGS</text>
+      <circle cx="912" cy="292" r="4"></circle><line x1="912" y1="292" x2="940" y2="386"></line>
+      <rect x="898" y="390" width="84" height="32" rx="16"></rect><text x="940" y="412" text-anchor="middle">TOES</text>
+    </g>
+  </svg>
+</template>
+<!-- ============================ HEADER ================================== -->
+<header class="header">
+  <div class="wrap header__in">
+    <span class="logo">Learn&nbsp;to&nbsp;Swim</span>
+    <nav class="nav" aria-label="Primary">
+      <a href="#learning-path" data-nav>Learn</a>
+      <a href="#stroke-explorer" data-nav>Strokes</a>
+      <a href="#water-confidence" data-nav>Basics</a>
+      <a href="#safety" data-nav>Safety</a>
+    </nav>
+    <button class="btn btn--solid" data-scroll="#water-confidence">Start Learning</button>
+  </div>
+</header>
+
+<!-- progress indicator — "where am I in the journey?" -->
+<div class="progress" aria-hidden="false">
+  <div class="wrap progress__in">
+    <span class="progress__count" id="prg-count">01 / 09</span>
+    <span class="progress__name" id="prg-name">Water Basics</span>
+    <div class="progress__dots" id="prg-dots" aria-hidden="true"></div>
+    <div class="progress__bar" role="img" aria-label="Journey progress"><div class="progress__fill" id="prg-fill"></div></div>
+    <span class="vh" aria-live="polite" id="prg-live">Section 1 of 9, Water Basics</span>
+  </div>
+</div>
+
+<main id="main">
+
+<!-- ============================ 01 HERO ================================== -->
+<section class="section hero" id="hero" data-chapter="Water Basics">
+  <div class="wrap">
+    <div class="hero__grid">
+      <div>
+        <p class="eyebrow">A beginner's guide to the water</p>
+        <h1 class="h-hero">Learn<br>to Swim</h1>
+        <p class="h-2" style="margin:18px 0 14px;font-weight:400;color:var(--g70)">One movement at a time.</p>
+        <p class="lede">A visual guide for your first steps in the water.</p>
+        <div class="row" style="margin-top:32px">
+          <button class="btn btn--solid" data-scroll="#water-confidence">Start Learning</button>
+          <button class="btn" data-scroll="#stroke-explorer">Explore Strokes</button>
+        </div>
+        <p class="note" style="margin-top:34px">Use this guide to understand the movement.<br>Practise in a safe environment and consider learning with a qualified instructor.</p>
+      </div>
+      <div class="stage hero__stage" data-label="Side view · at the surface">
+        <div data-swimmer="hero" data-state="floating idle" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span>One swimmer · one body of water</span><span id="hero-state">STATE — FLOATING</span></div>
+      </div>
+    </div>
+    <div class="scrollcue"><span class="scrollcue__line"></span> Scroll to begin</div>
+  </div>
+</section>
+
+<!-- ==================== 02 START WITH THE WATER ========================== -->
+<section class="section" id="water-confidence" data-chapter="Water Confidence">
+  <div class="wrap reveal">
+    <p class="eyebrow">01 — Get comfortable in water</p>
+    <div class="split">
+      <div>
+        <h2 class="h-1">Before you swim, get comfortable in the water.</h2>
+        <p class="copy" style="margin-top:16px">Nobody starts with a stroke. You start by standing, entering and letting the water feel normal.</p>
+      </div>
+      <div class="stack" style="justify-content:end">
+        <p class="label">What you are learning right now</p>
+        <p class="h-3">Water confidence — the first core skill.</p>
+        <p class="small">Hover or click a step to preview it on the swimmer.</p>
+      </div>
+    </div>
+
+    <div class="stage" data-frame="tall" data-label="Side view · waist depth" style="margin:36px 0 24px">
+      <div data-swimmer="confidence" data-state="standing" style="width:100%"></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="wc-caption">STAND — feet on the pool floor, water at waist height</span><span id="wc-step">01 / 04</span></div>
+    </div>
+
+    <ol class="flow" id="wc-flow">
+      <li><button class="flow__item is-active" data-state="standing" data-cap="STAND — feet on the pool floor, water at waist height" data-i="1" aria-pressed="true">
+        <span class="ph stage--xs" data-swimmer="wc-standing" data-state="standing" data-mini="1" data-crop="vertical" style="min-height:124px"></span>
+        <span class="flow__t">Stand</span><span class="flow__d">Find water where you can stand comfortably.</span></button></li>
+      <li><button class="flow__item" data-state="entering" data-cap="ENTER — hold the wall or steps, move in slowly" data-i="2" aria-pressed="false">
+        <span class="ph stage--xs" data-swimmer="wc-entering" data-state="entering" data-mini="1" data-crop="vertical" style="min-height:124px"></span>
+        <span class="flow__t">Enter</span><span class="flow__d">Use the steps or wall. Never jump in first.</span></button></li>
+      <li><button class="flow__item" data-state="comfortable" data-cap="GET COMFORTABLE — shoulders under, body relaxed" data-i="3" aria-pressed="false">
+        <span class="ph stage--xs" data-swimmer="wc-comfortable" data-state="comfortable" data-mini="1" data-crop="vertical" style="min-height:124px"></span>
+        <span class="flow__t">Get Comfortable</span><span class="flow__d">Relax your body and let the water support you.</span></button></li>
+      <li><button class="flow__item" data-state="facein" data-cap="FACE IN WATER — eyes down, breath held for a moment" data-i="4" aria-pressed="false">
+        <span class="ph stage--xs" data-swimmer="wc-facein" data-state="facein" data-mini="1" data-crop="vertical" style="min-height:124px"></span>
+        <span class="flow__t">Put Face In Water</span><span class="flow__d">A short dip is enough on the first try.</span></button></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ========================== 03 BREATHING =============================== -->
+<section class="section" id="breathing" data-chapter="Breathing">
+  <div class="wrap reveal">
+    <p class="eyebrow">02 — Breathing / bubbles</p>
+    <div class="split">
+      <div>
+        <div class="stage" data-frame="tall" data-label="Three-quarter view · at the surface">
+          <div data-swimmer="breath" data-state="standing" style="width:100%"></div>
+          <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="br-caption">Above water — calm inhale</span><span id="br-count">STEP 01 / 04</span></div>
+        </div>
+        <div class="row" style="margin-top:18px;justify-content:space-between">
+          <div class="btn-group">
+            <button class="btn btn--sm" id="br-prev">Previous</button>
+            <button class="btn btn--sm" id="br-next">Next Step</button>
+          </div>
+          <button class="btn btn--sm" id="br-play">Play Sequence</button>
+        </div>
+      </div>
+      <div>
+        <h2 class="h-1">Breathe with the water.</h2>
+        <p class="copy" style="margin:14px 0 26px">Beginners hold their breath. Swimmers breathe out slowly, the whole time their face is in.</p>
+        <ol class="steps" id="br-steps">
+          <li><button class="step" data-i="1" aria-current="step"><span class="step__n">01</span><span><span class="step__t">Inhale above water</span><span class="step__d">A normal breath. Not a big gulp.</span></span></button></li>
+          <li><button class="step" data-i="2"><span class="step__n">02</span><span><span class="step__t">Put your face into the water</span><span class="step__d">Eyes down, neck relaxed.</span></span></button></li>
+          <li><button class="step" data-i="3"><span class="step__n">03</span><span><span class="step__t">Blow bubbles slowly</span><span class="step__d">Keep breathing out until the air is gone.</span></span></button></li>
+          <li><button class="step" data-i="4"><span class="step__n">04</span><span><span class="step__t">Lift or rotate to breathe again</span><span class="step__d">Turn with your body, don't lift your head.</span></span></button></li>
+        </ol>
+        <p class="note" style="margin-top:24px">The swimmer never disappears between steps — it moves from one position into the next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== 04 FLOATING =============================== -->
+<section class="section" id="floating" data-chapter="Floating">
+  <div class="wrap reveal">
+    <p class="eyebrow">03 — Floating</p>
+    <div class="split split--rev">
+      <div>
+        <h2 class="h-1">Let the water hold you.</h2>
+        <p class="lede" style="margin-top:12px">Relax. Balance. Float.</p>
+        <div class="tabs" role="tablist" aria-label="Float positions" id="fl-tabs" style="margin-top:28px">
+          <button class="tab" role="tab" id="tab-back" aria-controls="fl-panel" aria-selected="false" tabindex="-1" data-state="floatback" data-cap="BACK FLOAT — ears in the water, eyes up">Back Float</button>
+          <button class="tab" role="tab" id="tab-front" aria-controls="fl-panel" aria-selected="true" tabindex="0" data-state="floating" data-cap="FRONT FLOAT — face down, body long">Front Float</button>
+          <button class="tab" role="tab" id="tab-star" aria-controls="fl-panel" aria-selected="false" tabindex="-1" data-state="floatstar" data-cap="STAR FLOAT — arms and legs spread wide">Star Float</button>
+        </div>
+        <div class="grid g-3" style="gap:16px;margin-top:28px">
+          <div class="card"><span class="card__k">Head</span><span class="card__t">Relaxed</span><span class="card__d">Keep your head relaxed.</span></div>
+          <div class="card"><span class="card__k">Body</span><span class="card__t">Long</span><span class="card__d">Let your body stay long.</span></div>
+          <div class="card"><span class="card__k">Breath</span><span class="card__t">Clear</span><span class="card__d">Keep your airway clear.</span></div>
+        </div>
+      </div>
+      <div class="stage" role="tabpanel" id="fl-panel" aria-labelledby="tab-front" tabindex="0" data-label="Side view · body balance">
+        <div data-swimmer="float" data-state="floating" data-annot="1" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="fl-caption">FRONT FLOAT — face down, body long</span><span>HEAD · HIPS · LEGS · ARMS</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== 05 STREAMLINE ============================== -->
+<section class="section" id="streamline" data-chapter="Streamline &amp; Glide">
+  <div class="wrap reveal">
+    <p class="eyebrow">04 — Body position &amp; streamline</p>
+    <div class="split">
+      <div class="stage" data-label="Side view · body line">
+        <div data-swimmer="stream" data-state="normal" data-annot="1" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="st-caption">NORMAL — head lifted, hips low, more resistance</span><span id="st-drag">DRAG ●●●●○</span></div>
+      </div>
+      <div>
+        <h2 class="h-1">Make your body one line.</h2>
+        <p class="copy" style="margin:14px 0 24px"><strong>Streamline</strong> — make your body long and narrow so you move through the water more easily.</p>
+        <div class="tabs" role="group" aria-label="Body position" id="st-toggle">
+          <button class="tab" data-state="normal" aria-pressed="true" aria-selected="true">Normal</button>
+          <button class="tab" data-state="streamlined" aria-pressed="false" aria-selected="false">Streamline</button>
+        </div>
+        <p class="h-2" style="margin:32px 0 0;max-width:18ch">Longer and more streamlined means less resistance.</p>
+        <ul class="grid g-2" style="gap:12px;margin-top:26px">
+          <li class="card"><span class="card__k">Head</span><span class="card__d">Eyes down, in line with your spine.</span></li>
+          <li class="card"><span class="card__k">Arms</span><span class="card__d">Stretched past your ears.</span></li>
+          <li class="card"><span class="card__k">Core</span><span class="card__d">Gently tight so hips stay up.</span></li>
+          <li class="card"><span class="card__k">Legs &amp; toes</span><span class="card__d">Long and pointed, not bent.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 06 PUSH & GLIDE ============================= -->
+<section class="section" id="glide" data-chapter="Streamline &amp; Glide">
+  <div class="wrap reveal">
+    <p class="eyebrow">05 — Push &amp; glide</p>
+    <div class="split">
+      <div><h2 class="h-1">Push. Stretch. Glide.</h2>
+      <p class="copy" style="margin-top:14px">Your first real travel through water comes from the wall, not from your arms.</p></div>
+      <div class="row" style="justify-content:flex-end;align-items:flex-end;height:100%">
+        <button class="btn btn--solid" id="gl-play">Play Movement</button>
+        <button class="btn" id="gl-reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="stage" data-frame="deep" data-label="Underwater side view · travel" style="margin:32px 0 20px">
+      <div data-swimmer="glide" data-state="wall" style="width:100%"></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="gl-caption">FRAME 01 — feet planted on the wall, body tucked</span><span id="gl-frame">01 / 05</span></div>
+    </div>
+
+    <ol class="flow flow--5" id="gl-flow">
+      <li><button class="flow__item is-active" data-state="wall" data-i="1" data-cap="FRAME 01 — feet planted on the wall, body tucked"><span class="num">01</span><span class="flow__t">Feet On Wall</span><span class="flow__d">Both feet flat, knees bent.</span></button></li>
+      <li><button class="flow__item" data-state="push" data-i="2" data-cap="FRAME 02 — legs extend, the wall does the work"><span class="num">02</span><span class="flow__t">Push</span><span class="flow__d">One strong push, not a jump.</span></button></li>
+      <li><button class="flow__item" data-state="extend" data-i="3" data-cap="FRAME 03 — arms reach past the ears"><span class="num">03</span><span class="flow__t">Arms Extended</span><span class="flow__d">Reach forward as you leave the wall.</span></button></li>
+      <li><button class="flow__item" data-state="gliding" data-i="4" data-cap="FRAME 04 — one straight line from hands to toes"><span class="num">04</span><span class="flow__t">Streamlined Glide</span><span class="flow__d">Squeeze everything long and narrow.</span></button></li>
+      <li><button class="flow__item" data-state="glidelong" data-i="5" data-cap="FRAME 05 — travel quietly until you slow down"><span class="num">05</span><span class="flow__t">Glide</span><span class="flow__d">Stay still and let the glide carry you.</span></button></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================ 07 KICKING =============================== -->
+<section class="section" id="kicking" data-chapter="Kick &amp; Arms">
+  <div class="wrap reveal">
+    <p class="eyebrow">06 — Kicking</p>
+    <div class="split split--rev">
+      <div>
+        <h2 class="h-1">Now add your legs.</h2>
+        <p class="copy" style="margin:14px 0 26px">A flutter kick is small, steady and comes from the hip — not from the knee.</p>
+        <div class="row" style="margin-bottom:26px">
+          <button class="btn btn--solid" id="ki-toggle" aria-pressed="false">Start Kicking</button>
+          <div class="btn-group" id="ki-frames">
+            <button class="btn btn--sm" data-state="kickstraight" aria-pressed="true">Straight Leg</button>
+            <button class="btn btn--sm" data-state="kickdown" aria-pressed="false">Down Kick</button>
+            <button class="btn btn--sm" data-state="kickup" aria-pressed="false">Up Kick</button>
+          </div>
+        </div>
+        <ul class="grid g-2" style="gap:12px">
+          <li class="card"><span class="card__k">01</span><span class="card__t">Keep legs long</span><span class="card__d">Think of kicking with the whole leg.</span></li>
+          <li class="card"><span class="card__k">02</span><span class="card__t">Keep knees relaxed</span><span class="card__d">A small natural bend, never a bicycle.</span></li>
+          <li class="card"><span class="card__k">03</span><span class="card__t">Point your toes</span><span class="card__d">Loose ankles push more water.</span></li>
+          <li class="card"><span class="card__k">04</span><span class="card__t">Kick from the hips</span><span class="card__d">The movement starts high, not low.</span></li>
+        </ul>
+      </div>
+      <div class="stage" data-frame="deep" data-label="Underwater side view · legs">
+        <div data-swimmer="kick" data-state="kickstraight" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="ki-caption">STRAIGHT LEG — the neutral position</span><span id="ki-mode">PAUSED</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 08 ARM MOVEMENT ============================= -->
+<section class="section" id="arms" data-chapter="Kick &amp; Arms">
+  <div class="wrap reveal">
+    <p class="eyebrow">07 — Arm movement</p>
+    <div class="split">
+      <div class="stage" data-label="Three-quarter view · arm cycle">
+        <div data-swimmer="arm" data-state="freestyle" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="ar-caption">ENTRY — hand slides in in front of the shoulder</span><span id="ar-count">01 / 05</span></div>
+      </div>
+      <div>
+        <h2 class="h-1">Add the arms.</h2>
+        <p class="copy" style="margin:14px 0 22px">One arm cycle, five moments. Click any moment to move the swimmer into it.</p>
+        <ol class="steps" id="ar-steps">
+          <li><button class="step" data-i="1" data-cap="ENTRY — hand slides in in front of the shoulder" aria-current="step"><span class="step__n">01</span><span><span class="step__t">Entry</span><span class="step__d">Fingertips first, arm long.</span></span></button></li>
+          <li><button class="step" data-i="2" data-cap="CATCH — fingers turn down and hold the water"><span class="step__n">02</span><span><span class="step__t">Catch</span><span class="step__d">Get a light grip on the water.</span></span></button></li>
+          <li><button class="step" data-i="3" data-cap="PULL — the hand moves back under the body"><span class="step__n">03</span><span><span class="step__t">Pull</span><span class="step__d">Move yourself past your hand.</span></span></button></li>
+          <li><button class="step" data-i="4" data-cap="PUSH — finish all the way past the hip"><span class="step__n">04</span><span><span class="step__t">Push</span><span class="step__d">Finish the stroke, don't cut it short.</span></span></button></li>
+          <li><button class="step" data-i="5" data-cap="RECOVERY — relaxed arm travels forward over the water"><span class="step__n">05</span><span><span class="step__t">Recovery</span><span class="step__d">Relax the arm on the way forward.</span></span></button></li>
+        </ol>
+        <div class="row" style="margin-top:20px">
+          <button class="btn btn--sm btn--solid" id="ar-play">Play Cycle</button>
+          <button class="btn btn--sm" id="ar-next">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 09 COORDINATION ============================= -->
+<section class="section" id="coordination" data-chapter="Coordination">
+  <div class="wrap reveal">
+    <p class="eyebrow">08 — Coordination</p>
+    <div class="split">
+      <div><h2 class="h-1">Swimming is about timing.</h2>
+      <p class="copy" style="margin-top:14px">Arms, legs, breath and body position are not four skills. They are one rhythm.</p></div>
+      <div class="row" style="justify-content:flex-end;align-items:flex-end;height:100%">
+        <button class="btn btn--solid" id="co-play">Play</button>
+        <button class="btn" id="co-pause">Pause</button>
+        <button class="btn" id="co-reset">Reset</button>
+      </div>
+    </div>
+
+    <div class="stage" data-frame="deep" data-label="Side view · full stroke" style="margin:32px 0 24px">
+      <div data-swimmer="coord" data-state="freestyle" style="width:100%"></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="co-caption">Paused — press play to see the four tracks line up</span><span id="co-beat">BEAT 0 / 8</span></div>
+    </div>
+
+    <div id="co-tracks">
+      <div class="track"><span class="track__k">Arms</span><div class="track__lane" data-lane="arms"><span class="playhead" data-head></span></div></div>
+      <div class="track"><span class="track__k">Legs</span><div class="track__lane" data-lane="legs"><span class="playhead" data-head></span></div></div>
+      <div class="track"><span class="track__k">Breath</span><div class="track__lane" data-lane="breath"><span class="playhead" data-head></span></div></div>
+      <div class="track"><span class="track__k">Body</span><div class="track__lane" data-lane="body"><span class="playhead" data-head></span></div></div>
+    </div>
+    <p class="note" style="margin-top:20px">Arms alternate · legs tick continuously · breath happens twice per cycle · body rolls side to side.</p>
+  </div>
+</section>
+
+<!-- ====================== 10 STROKE EXPLORER + DETAIL ==================== -->
+<section class="section" id="stroke-explorer" data-chapter="Strokes">
+  <div class="wrap reveal">
+    <p class="eyebrow">09 — Stroke explorer</p>
+    <div class="split">
+      <div><h2 class="h-1">Choose your stroke.</h2>
+      <p class="copy" style="margin-top:14px">Same swimmer, same water. Only the movement changes.</p></div>
+      <div class="row" style="justify-content:flex-end;align-items:flex-end;height:100%">
+        <button class="btn btn--solid" id="sx-watch">Watch Movement</button>
+        <button class="btn" id="sx-stop">Stop</button>
+      </div>
+    </div>
+
+    <div class="stage" data-frame="deep" data-label="Side view · selected stroke" style="margin:32px 0 20px">
+      <div data-swimmer="stroke" data-state="freestyle" style="width:100%"></div>
+      <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span id="sx-caption">Body long, close to the surface</span><span id="sx-phase">READY</span></div>
+    </div>
+
+    <div class="tiles tiles--4" id="sx-tiles" role="group" aria-label="Choose a stroke">
+      <button class="tile" data-stroke="freestyle" aria-pressed="true">
+        <span class="tile__n">01</span><span class="tile__v" data-swimmer="tile-freestyle" data-state="freestyle" data-mini="1"></span>
+        <span class="tile__t">Freestyle</span><span class="tile__d">Long, continuous and efficient.</span><span class="dots">●●○○</span></button>
+      <button class="tile" data-stroke="breaststroke" aria-pressed="false">
+        <span class="tile__n">02</span><span class="tile__v" data-swimmer="tile-breast" data-state="breaststroke" data-mini="1"></span>
+        <span class="tile__t">Breaststroke</span><span class="tile__d">Slow, symmetrical, easy to breathe.</span><span class="dots">●●○○</span></button>
+      <button class="tile" data-stroke="backstroke" aria-pressed="false">
+        <span class="tile__n">03</span><span class="tile__v" data-swimmer="tile-back" data-state="backstroke" data-mini="1"></span>
+        <span class="tile__t">Backstroke</span><span class="tile__d">Face up, breathing is always free.</span><span class="dots">●●●○</span></button>
+      <button class="tile" data-stroke="butterfly" aria-pressed="false">
+        <span class="tile__n">04</span><span class="tile__v" data-swimmer="tile-fly" data-state="butterfly" data-mini="1"></span>
+        <span class="tile__t">Butterfly</span><span class="tile__d">Powerful whole-body rhythm.</span><span class="dots">●●●●</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 10b SELECTED STROKE DETAIL ==================== -->
+<section class="section section--tight" id="stroke-detail" data-chapter="Strokes">
+  <div class="wrap reveal">
+    <div class="split" style="align-items:end">
+      <div>
+        <div class="row" style="margin-bottom:10px">
+          <span class="label" id="sd-kicker">Stroke 01 of 04</span>
+          <span class="badge" id="sd-badge" hidden>Advanced</span>
+        </div>
+        <h2 class="h-1" id="sd-title">Freestyle</h2>
+        <p class="lede" id="sd-sub" style="margin-top:10px">Long, continuous and efficient.</p>
+      </div>
+      <div class="stack">
+        <span class="label">Movement sequence</span>
+        <ol class="row" id="sd-seq" style="gap:8px"></ol>
+      </div>
+    </div>
+
+    <div class="grid g-4" id="sd-cards" style="margin-top:36px"></div>
+
+    <div style="margin-top:40px">
+      <h3 class="h-2" style="margin-bottom:6px">Common mistakes</h3>
+      <p class="small" style="margin-bottom:20px" id="sd-mistake-note">Compare the two positions.</p>
+      <div class="grid g-2" id="sd-mistakes" style="gap:20px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 11 STROKE COMPARISON ========================== -->
+<section class="section" id="comparison" data-chapter="Strokes">
+  <div class="wrap reveal">
+    <p class="eyebrow">Compare</p>
+    <h2 class="h-1" style="margin-bottom:28px">How are the strokes different?</h2>
+    <table class="cmp" id="cmp-table">
+      <caption class="vh">Comparison of the four strokes across body, arms, legs, breathing, difficulty and best use</caption>
+      <thead><tr><th scope="col"><span class="vh">Attribute</span></th>
+        <th scope="col" data-col="freestyle">Freestyle</th><th scope="col" data-col="breaststroke">Breaststroke</th>
+        <th scope="col" data-col="backstroke">Backstroke</th><th scope="col" data-col="butterfly">Butterfly</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Body</th><td data-col="freestyle">Flat, rolling</td><td data-col="breaststroke">Rises and dips</td><td data-col="backstroke">Flat, face up</td><td data-col="butterfly">Wave-like</td></tr>
+        <tr><th scope="row">Arms</th><td data-col="freestyle">Alternating</td><td data-col="breaststroke">Symmetrical</td><td data-col="backstroke">Alternating</td><td data-col="butterfly">Simultaneous</td></tr>
+        <tr><th scope="row">Legs</th><td data-col="freestyle">Flutter kick</td><td data-col="breaststroke">Whip kick</td><td data-col="backstroke">Flutter kick</td><td data-col="butterfly">Dolphin kick</td></tr>
+        <tr><th scope="row">Breathing</th><td data-col="freestyle">Turn to the side</td><td data-col="breaststroke">Every stroke, forward</td><td data-col="backstroke">Always free</td><td data-col="butterfly">Forward, quick</td></tr>
+        <tr><th scope="row">Difficulty</th><td data-col="freestyle">●●○○</td><td data-col="breaststroke">●●○○</td><td data-col="backstroke">●●●○</td><td data-col="butterfly">●●●●</td></tr>
+        <tr><th scope="row">Best for</th><td data-col="freestyle">Distance and fitness</td><td data-col="breaststroke">A calm first stroke</td><td data-col="backstroke">Easy breathing</td><td data-col="butterfly">Later, once strong</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:18px">The column of the stroke selected above is highlighted automatically.</p>
+  </div>
+</section>
+
+<!-- ========================= 12 COMMON MISTAKES ========================== -->
+<section class="section" id="mistakes" data-chapter="Strokes">
+  <div class="wrap reveal">
+    <p class="eyebrow">Fix the basics</p>
+    <div class="split" style="align-items:end">
+      <h2 class="h-1">Small mistakes make swimming harder.</h2>
+      <p class="small" style="text-align:right">Hover a card to see the corrected position.</p>
+    </div>
+    <div class="grid g-2" style="margin-top:32px;gap:20px" id="mk-cards">
+      <article class="vs" data-avoid="headhigh" data-do="streamlined">
+        <div class="vs__side vs__side--avoid"><span class="vs__k">Avoid</span>
+          <span class="ph stage--xs" data-swimmer="mk1a" data-state="headhigh" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Head too high</p><p class="card__d">Lifting the head drops the hips.</p></div>
+        <div class="vs__mid">VS</div>
+        <div class="vs__side"><span class="vs__k">Do</span>
+          <span class="ph stage--xs" data-swimmer="mk1b" data-state="streamlined" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Relaxed head</p><p class="card__d">Eyes down, neck in line.</p></div>
+      </article>
+      <article class="vs" data-avoid="hipssink" data-do="streamlined">
+        <div class="vs__side vs__side--avoid"><span class="vs__k">Avoid</span>
+          <span class="ph stage--xs" data-swimmer="mk2a" data-state="hipssink" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Sinking hips</p><p class="card__d">The body becomes a wall.</p></div>
+        <div class="vs__mid">VS</div>
+        <div class="vs__side"><span class="vs__k">Do</span>
+          <span class="ph stage--xs" data-swimmer="mk2b" data-state="streamlined" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Streamlined body</p><p class="card__d">One line, hips near the surface.</p></div>
+      </article>
+      <article class="vs" data-avoid="bentknees" data-do="kicking">
+        <div class="vs__side vs__side--avoid"><span class="vs__k">Avoid</span>
+          <span class="ph stage--xs" data-swimmer="mk3a" data-state="bentknees" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Bent knees</p><p class="card__d">Cycling legs stop you moving.</p></div>
+        <div class="vs__mid">VS</div>
+        <div class="vs__side"><span class="vs__k">Do</span>
+          <span class="ph stage--xs" data-swimmer="mk3b" data-state="kicking" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Long relaxed legs</p><p class="card__d">Small kick from the hips.</p></div>
+      </article>
+      <article class="vs" data-avoid="heldbreath" data-do="exhaling">
+        <div class="vs__side vs__side--avoid"><span class="vs__k">Avoid</span>
+          <span class="ph stage--xs" data-swimmer="mk4a" data-state="heldbreath" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Holding the breath</p><p class="card__d">Tension builds up fast.</p></div>
+        <div class="vs__mid">VS</div>
+        <div class="vs__side"><span class="vs__k">Do</span>
+          <span class="ph stage--xs" data-swimmer="mk4b" data-state="exhaling" data-mini="1" style="min-height:110px"></span>
+          <p class="card__t" style="margin-top:10px">Continuous breathing</p><p class="card__d">Bubbles out the whole time.</p></div>
+      </article>
+    </div>
+    <p class="note" style="margin-top:20px">Crossing the centre line is the fourth common freestyle fault — shown in the stroke detail section above.</p>
+  </div>
+</section>
+
+<!-- ============================ 13 SAFETY =============================== -->
+<section class="section" id="safety" data-chapter="Safety &amp; Practice">
+  <div class="wrap reveal">
+    <div class="safety">
+      <p class="eyebrow">Water safety — not technique</p>
+      <div class="split" style="align-items:end">
+        <h2 class="h-1">Swimming starts with being safe.</h2>
+        <p class="copy" style="text-align:right;margin-left:auto">This section is deliberately separated from the lesson content. It applies before, during and after every session.</p>
+      </div>
+      <div class="grid g-3" style="gap:16px;margin-top:32px">
+        <div class="card"><span class="card__k">01</span><span class="card__t">Safe entry</span><span class="card__d">Use steps or the wall. Check the depth before you get in.</span></div>
+        <div class="card"><span class="card__k">02</span><span class="card__t">Safe exit</span><span class="card__d">Know how you will get out before you start.</span></div>
+        <div class="card"><span class="card__k">03</span><span class="card__t">Know your depth</span><span class="card__d">Stay where you can stand until floating feels easy.</span></div>
+        <div class="card"><span class="card__k">04</span><span class="card__t">Never swim alone</span><span class="card__d">A lifeguard or a companion, every single time.</span></div>
+        <div class="card"><span class="card__k">05</span><span class="card__t">Follow pool rules</span><span class="card__d">Lane direction, diving zones and signage exist for a reason.</span></div>
+        <div class="card"><span class="card__k">06</span><span class="card__t">Know when to ask for help</span><span class="card__d">Stop, stand or signal early — not once you are tired.</span></div>
+      </div>
+      <p class="note" style="margin-top:28px">This guide explains movement. It is not a replacement for swimming lessons or a qualified instructor.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= 14 LEARNING PATH ============================ -->
+<section class="section" id="learning-path" data-chapter="Safety &amp; Practice">
+  <div class="wrap reveal">
+    <p class="eyebrow">The journey</p>
+    <div class="split" style="align-items:end">
+      <h2 class="h-1">Your first swimming journey.</h2>
+      <p class="small" style="text-align:right">Click a stage to jump to that lesson. Stages you have scrolled past are marked done.</p>
+    </div>
+    <ol class="path" id="path" style="margin-top:32px">
+      <li><button class="path__i" data-target="#water-confidence"><span class="marker"></span><span class="num">01</span><span class="path__t">Water Confidence</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#breathing"><span class="marker"></span><span class="num">02</span><span class="path__t">Breathing</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#floating"><span class="marker"></span><span class="num">03</span><span class="path__t">Floating</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#glide"><span class="marker"></span><span class="num">04</span><span class="path__t">Glide</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#kicking"><span class="marker"></span><span class="num">05</span><span class="path__t">Kick</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#arms"><span class="marker"></span><span class="num">06</span><span class="path__t">Arms</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#coordination"><span class="marker"></span><span class="num">07</span><span class="path__t">Coordination</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#stroke-explorer"><span class="marker"></span><span class="num">08</span><span class="path__t">Freestyle</span><span class="state">Upcoming</span></button></li>
+      <li><button class="path__i" data-target="#comparison"><span class="marker"></span><span class="num">09</span><span class="path__t">Other Strokes</span><span class="state">Upcoming</span></button></li>
+    </ol>
+  </div>
+</section>
+
+<!-- =========================== 15 PRACTICE ============================== -->
+<section class="section" id="practice" data-chapter="Safety &amp; Practice">
+  <div class="wrap reveal">
+    <p class="eyebrow">Example beginner practice structure</p>
+    <div class="split" style="align-items:end">
+      <h2 class="h-1">Your first session.</h2>
+      <p class="small" style="text-align:right">Example structure only — not medical or professional advice.<br>Adjust with a qualified instructor.</p>
+    </div>
+    <div class="plan" id="plan" style="margin-top:32px">
+      <div class="plan__r"><span class="plan__min">5 min</span><span><strong>Get comfortable</strong> — stand, enter, relax</span><span class="plan__bar"><i style="width:12.5%"></i></span></div>
+      <div class="plan__r"><span class="plan__min">5 min</span><span><strong>Bubbles</strong> — face in, breathe out slowly</span><span class="plan__bar"><i style="width:12.5%"></i></span></div>
+      <div class="plan__r"><span class="plan__min">5 min</span><span><strong>Floating</strong> — front, back, recover to standing</span><span class="plan__bar"><i style="width:12.5%"></i></span></div>
+      <div class="plan__r"><span class="plan__min">5 min</span><span><strong>Push &amp; glide</strong> — one line from the wall</span><span class="plan__bar"><i style="width:12.5%"></i></span></div>
+      <div class="plan__r"><span class="plan__min">10 min</span><span><strong>Kick</strong> — with a float, short repeats</span><span class="plan__bar"><i style="width:25%"></i></span></div>
+      <div class="plan__r"><span class="plan__min">10 min</span><span><strong>Freestyle basics</strong> — glide, one arm, breathe</span><span class="plan__bar"><i style="width:25%"></i></span></div>
+      <div class="plan__r"><span class="plan__min">5 min</span><span><strong>Easy swim / rest</strong> — finish calm</span><span class="plan__bar"><i style="width:12.5%"></i></span></div>
+      <div class="plan__r is-total"><span class="plan__min">40 min</span><span>Total — stop earlier if you feel tired</span><span class="plan__bar"><i style="width:100%"></i></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 16 FAQ ================================ -->
+<section class="section" id="faq" data-chapter="Safety &amp; Practice">
+  <div class="wrap reveal">
+    <p class="eyebrow">Questions</p>
+    <h2 class="h-1" style="margin-bottom:28px">Beginner questions.</h2>
+    <div class="acc" id="acc">
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">How often should a beginner swim? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Two or three short sessions a week builds water confidence faster than one long session.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">How long should my first sessions be? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Around 30–40 minutes, including rest. Finish while you still feel comfortable.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">Should I learn freestyle first? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Learn floating, gliding and breathing first. Freestyle is easier once your body position is stable.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">Why do my legs sink? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Usually the head is too high or the breath is held. Look down, breathe out, and stay long.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">How do I get comfortable putting my face underwater? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Start at the wall in shallow water. Blow bubbles at the surface first, then dip a little deeper each time.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">Do I need swimming equipment? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Goggles help most beginners. A kickboard is useful for leg practice. Nothing else is required.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">When should I learn breathing? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Immediately. Breathing out into the water is the second skill, before floating and before strokes.</div></div></div>
+      <div class="acc__i"><h3><button class="acc__b" aria-expanded="false">Should I learn with a coach? <span class="sign" aria-hidden="true">+</span></button></h3>
+        <div class="acc__p"><div>Yes, where possible. Use this guide to understand the movement, and practise it in a safe, supervised environment.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 17 FINAL CTA ============================ -->
+<section class="section" id="final-cta" data-chapter="Safety &amp; Practice">
+  <div class="wrap reveal">
+    <div class="split" style="align-items:center">
+      <div>
+        <h2 class="h-1">Ready to get in the water?</h2>
+        <p class="lede" style="margin-top:14px">Start with one movement. Then build from there.</p>
+        <div class="row" style="margin-top:30px">
+          <button class="btn btn--solid" data-scroll="#hero">Start Again</button>
+          <button class="btn" data-scroll="#stroke-explorer">Explore Strokes</button>
+        </div>
+      </div>
+      <div class="stage" data-label="Side view · back at the surface">
+        <div data-swimmer="outro" data-state="floating idle" style="width:100%"></div>
+        <span class="stage__glow" aria-hidden="true"></span>
+        <div class="stage__meta"><span>Back where it started</span><span>STATE — FLOATING</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__in">
+    <span>Learn to Swim — interactive prototype, visual v1</span>
+    <span>Desktop 1280–1600px · brand identity not yet finalised</span>
+    <span>Educational guide only — practise with a qualified instructor.</span>
+  </div>
+</footer>
+
+<script>
+/* =========================================================================
+   WIREFRAME BEHAVIOUR — vanilla JS, organised around one learning state.
+   No routing, no reloads. Every interaction is a state change on the page.
+   ========================================================================= */
+(function(){
+"use strict";
+
+/* ---- 0. GLOBAL LEARNING STATE ----------------------------------------- */
+var learningState = {
+  chapter: 0,          // index of the current chapter (0-8)
+  currentSkill: "water-confidence",
+  currentStep: 1,      // step inside the active skill
+  currentStroke: "freestyle",
+  playing: null        // id of whatever animation is running
+};
+
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var $  = function(s,c){ return (c||document).querySelector(s); };
+var $$ = function(s,c){ return Array.prototype.slice.call((c||document).querySelectorAll(s)); };
+
+/* ---- 1. SWIMMER REGISTRY ----------------------------------------------
+   Clone the single SVG template into every [data-swimmer] host so that the
+   whole site literally renders the same character.                        */
+var TPL = $("#tpl-swimmer");
+var SW = {};
+var FULL_BOX = "40 0 1120 700";         // the whole frame: air, surface, depth
+var MINI_BOX = "210 155 650 268";       // flat poses, cropped to the body
+var MINI_TALL = "466 8 372 636";        // upright poses need head-to-toe room
+
+/* Choose the camera. A stage keeps the body at a constant size and lets
+   the water grow to whatever shape the frame is, so nothing is ever cut
+   off and the surface always sits at the same height in the frame.
+   Cards use a fixed crop instead — they are too small to reframe. */
+var FRAMES = {
+  tall:{H:700, wl:.40, minW:1010},   /* upright poses: head to toe        */
+  flat:{H:420, wl:.46, minW:990},    /* at the surface: air above, water below */
+  deep:{H:420, wl:.20, minW:990}     /* underwater: the camera is below the line */
+};
+var STAGES = [];
+
+function fitStage(svg, host){
+  var f = FRAMES[(host.parentNode && host.parentNode.getAttribute("data-frame")) || "flat"] || FRAMES.flat;
+  var w = host.clientWidth || 1, h = host.clientHeight || 1, A = w / h;
+  var H = f.H, W = H * A;
+  if(W < f.minW){ W = f.minW; H = W / A; }
+  svg.setAttribute("viewBox", (600 - W / 2).toFixed(1) + " " + (262 - H * f.wl).toFixed(1) +
+                              " " + W.toFixed(1) + " " + H.toFixed(1));
+}
+
+/* A card-sized swimmer never shows the lane rope, the pool wall or the
+   annotation layer, so those subtrees are dropped rather than hidden. */
+var MINI_DROP = [".sw-annot",".sw-rope",".sw-floor",".sw-wall",".sw-ripple",".sw-rays"];
+
+function frame(svg, mini, crop){
+  if(!mini){ svg.setAttribute("preserveAspectRatio","xMidYMid slice"); return; }
+  MINI_DROP.forEach(function(sel){
+    var g = svg.querySelector(sel);
+    if(g && g.parentNode) g.parentNode.removeChild(g);
+  });
+  if(crop === "vertical"){ svg.setAttribute("viewBox", MINI_TALL); svg.setAttribute("preserveAspectRatio","xMidYMid meet"); return; }
+  svg.setAttribute("viewBox", MINI_BOX); svg.setAttribute("preserveAspectRatio","xMidYMid slice");
+}
+
+var reflow;
+window.addEventListener("resize", function(){
+  clearTimeout(reflow);
+  reflow = setTimeout(function(){ STAGES.forEach(function(s){ fitStage(s.svg, s.host); }); }, 160);
+});
+
+$$("[data-swimmer]").forEach(function(host){
+  var svg = TPL.content.querySelector("svg").cloneNode(true);
+  var key = host.getAttribute("data-swimmer");
+  var isMini = host.getAttribute("data-mini") === "1";
+  frame(svg, isMini, host.getAttribute("data-crop"));
+  host.appendChild(svg);
+  if(!isMini){ STAGES.push({svg:svg, host:host}); fitStage(svg, host); }
+  SW[key] = {
+    svg: svg,
+    mini: host.getAttribute("data-mini") === "1",
+    annot: host.getAttribute("data-annot") === "1",
+    state: host.getAttribute("data-state") || "floating"
+  };
+  paint(key, SW[key].state);
+});
+
+function paint(key, states){
+  var s = SW[key]; if(!s) return;
+  s.state = states;
+  var cls = ["swimmer"];
+  if(s.mini) cls.push("swimmer--mini");
+  if(s.annot) cls.push("swimmer--annotated");
+  states.split(/\s+/).forEach(function(st){ if(st) cls.push("swimmer--" + st); });
+  s.svg.setAttribute("class", cls.join(" "));
+}
+
+/* Change pose class (keeps the figure, transitions between positions). */
+function setState(key, states){
+  var s = SW[key]; if(!s) return;
+  s.svg.removeAttribute("style");   // drop any per-phase overrides
+  paint(key, states);
+}
+
+/* Override individual joints for stroke playback. */
+function setPose(key, vars){
+  var s = SW[key]; if(!s) return;
+  for(var k in vars){ if(vars.hasOwnProperty(k)) s.svg.style.setProperty(k, vars[k]); }
+}
+
+function setText(id, txt){ var el = document.getElementById(id); if(el) el.textContent = txt; }
+function pad(n){ return (n < 10 ? "0" : "") + n; }
+
+/* Only one animation may own the page at a time. */
+function stopAll(except){
+  ["glide","arms","stroke","coord"].forEach(function(name){
+    if(name !== except && STOPPERS[name]) STOPPERS[name]();
+  });
+}
+var STOPPERS = {};
+
+/* ---- 2. SMOOTH SCROLL BUTTONS + NAV ------------------------------------ */
+$$("[data-scroll]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var t = $(btn.getAttribute("data-scroll"));
+    if(t) t.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"start"});
+  });
+});
+
+/* ---- 3. SECTION 02 — WATER CONFIDENCE ---------------------------------- */
+(function(){
+  var items = $$("#wc-flow .flow__item");
+  function pick(btn){
+    items.forEach(function(b){ b.classList.toggle("is-active", b === btn); b.setAttribute("aria-pressed", b === btn); });
+    setState("confidence", btn.getAttribute("data-state"));
+    setText("wc-caption", btn.getAttribute("data-cap"));
+    setText("wc-step", pad(+btn.getAttribute("data-i")) + " / 04");
+    learningState.currentSkill = "water-confidence";
+    learningState.currentStep = +btn.getAttribute("data-i");
+  }
+  items.forEach(function(b){
+    b.addEventListener("click", function(){ pick(b); });
+    b.addEventListener("mouseenter", function(){ pick(b); });
+    b.addEventListener("focus", function(){ pick(b); });
+  });
+})();
+
+/* ---- 4. SECTION 03 — BREATHING STEPPER ---------------------------------
+   The core interaction of the whole wireframe: NEXT never swaps an image,
+   it moves the same swimmer from one position into the next.              */
+(function(){
+  var STEPS = [
+    {state:"standing",  cap:"Above water — calm inhale"},
+    {state:"facein",    cap:"Face in the water — eyes down"},
+    {state:"bubbles",   cap:"Blowing bubbles — air leaves slowly"},
+    {state:"breathing", cap:"Rotating to breathe — head stays low"}
+  ];
+  var i = 0, timer = null;
+  var steps = $$("#br-steps .step");
+
+  function render(){
+    var s = STEPS[i];
+    setState("breath", s.state);
+    setText("br-caption", s.cap);
+    setText("br-count", "STEP " + pad(i+1) + " / 04");
+    steps.forEach(function(b, n){
+      if(n === i) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current");
+    });
+    $("#br-prev").disabled = (i === 0);
+    learningState.currentSkill = "breathing";
+    learningState.currentStep = i + 1;
+  }
+  function go(n){ i = (n + STEPS.length) % STEPS.length; render(); }
+
+  steps.forEach(function(b, n){ b.addEventListener("click", function(){ stop(); go(n); }); });
+  $("#br-next").addEventListener("click", function(){ stop(); go(i + 1); });
+  $("#br-prev").addEventListener("click", function(){ stop(); go(i - 1); });
+
+  function stop(){ if(timer){ clearInterval(timer); timer = null; $("#br-play").setAttribute("aria-pressed","false"); $("#br-play").textContent = "Play Sequence"; } }
+  $("#br-play").addEventListener("click", function(){
+    if(timer){ stop(); return; }
+    this.setAttribute("aria-pressed","true"); this.textContent = "Stop Sequence";
+    go(0);
+    timer = setInterval(function(){ go(i + 1); }, REDUCED ? 1200 : 1500);
+  });
+  render();
+})();
+
+/* ---- 5. SECTION 04 — FLOATING TABS (keyboard accessible) --------------- */
+(function(){
+  var tabs = $$("#fl-tabs .tab");
+  function select(tab, focus){
+    tabs.forEach(function(t){
+      var on = t === tab;
+      t.setAttribute("aria-selected", on);
+      t.setAttribute("tabindex", on ? "0" : "-1");
+    });
+    setState("float", tab.getAttribute("data-state"));
+    setText("fl-caption", tab.getAttribute("data-cap"));
+    $("#fl-panel").setAttribute("aria-labelledby", tab.id);
+    if(focus) tab.focus();
+    learningState.currentSkill = "floating";
+  }
+  tabs.forEach(function(t, n){
+    t.addEventListener("click", function(){ select(t); });
+    t.addEventListener("keydown", function(e){
+      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : e.key === "Home" ? -99 : e.key === "End" ? 99 : 0;
+      if(!d) return;
+      e.preventDefault();
+      var idx = d === -99 ? 0 : d === 99 ? tabs.length - 1 : (n + d + tabs.length) % tabs.length;
+      select(tabs[idx], true);
+    });
+  });
+})();
+
+/* ---- 6. SECTION 05 — STREAMLINE TOGGLE --------------------------------- */
+(function(){
+  var btns = $$("#st-toggle .tab");
+  var COPY = {
+    normal:      {cap:"NORMAL — head lifted, hips low, more resistance", drag:"DRAG ●●●●○"},
+    streamlined: {cap:"STREAMLINE — one line from fingertips to toes",   drag:"DRAG ●○○○○"}
+  };
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var st = b.getAttribute("data-state");
+      btns.forEach(function(o){ var on = o === b; o.setAttribute("aria-pressed", on); o.setAttribute("aria-selected", on); });
+      setState("stream", st + " annotated");
+      setText("st-caption", COPY[st].cap);
+      setText("st-drag", COPY[st].drag);
+      learningState.currentSkill = "streamline";
+    });
+  });
+})();
+
+/* ---- 7. SECTION 06 — PUSH & GLIDE SEQUENCE ----------------------------- */
+(function(){
+  var items = $$("#gl-flow .flow__item");
+  var timer = null, i = 0;
+  function show(n){
+    i = n;
+    var b = items[n];
+    items.forEach(function(o){ o.classList.toggle("is-active", o === b); });
+    setState("glide", b.getAttribute("data-state"));
+    setText("gl-caption", b.getAttribute("data-cap"));
+    setText("gl-frame", pad(n+1) + " / 05");
+    learningState.currentSkill = "glide";
+    learningState.currentStep = n + 1;
+  }
+  items.forEach(function(b, n){ b.addEventListener("click", function(){ stop(); show(n); }); });
+
+  function stop(){ if(timer){ clearInterval(timer); timer = null; $("#gl-play").textContent = "Play Movement"; $("#gl-play").setAttribute("aria-pressed","false"); } }
+  STOPPERS.glide = stop;
+
+  $("#gl-play").addEventListener("click", function(){
+    if(timer){ stop(); return; }
+    stopAll("glide");
+    this.textContent = "Pause"; this.setAttribute("aria-pressed","true");
+    show(0);
+    timer = setInterval(function(){
+      if(i >= items.length - 1){ stop(); return; }
+      show(i + 1);
+    }, REDUCED ? 900 : 1100);
+  });
+  $("#gl-reset").addEventListener("click", function(){ stop(); show(0); });
+  show(0);
+})();
+
+/* ---- 8. SECTION 07 — KICKING ------------------------------------------- */
+(function(){
+  var frames = $$("#ki-frames .btn");
+  var CAP = {
+    kickstraight:"STRAIGHT LEG — the neutral position",
+    kickdown:"DOWN KICK — the propulsive part, toes pointed",
+    kickup:"UP KICK — relaxed return from the hip"
+  };
+  var looping = false;
+  function frame(b){
+    looping = false;
+    $("#ki-toggle").setAttribute("aria-pressed","false");
+    $("#ki-toggle").textContent = "Start Kicking";
+    setText("ki-mode","PAUSED");
+    frames.forEach(function(o){ o.setAttribute("aria-pressed", o === b); });
+    setState("kick", b.getAttribute("data-state"));
+    setText("ki-caption", CAP[b.getAttribute("data-state")]);
+  }
+  frames.forEach(function(b){ b.addEventListener("click", function(){ frame(b); }); });
+
+  $("#ki-toggle").addEventListener("click", function(){
+    looping = !looping;
+    this.setAttribute("aria-pressed", looping);
+    this.textContent = looping ? "Pause Kicking" : "Start Kicking";
+    setText("ki-mode", looping ? "LOOPING" : "PAUSED");
+    if(looping){
+      frames.forEach(function(o){ o.setAttribute("aria-pressed", false); });
+      setState("kick","kicking");
+      setText("ki-caption","FLUTTER KICK — small, steady, from the hips");
+    } else {
+      setState("kick","kickstraight");
+      frames[0].setAttribute("aria-pressed", true);
+      setText("ki-caption", CAP.kickstraight);
+    }
+    learningState.currentSkill = "kicking";
+  });
+})();
+
+/* ---- 9. SECTION 08 — ARM CYCLE -----------------------------------------
+   Angles keep decreasing so the arm always rotates FORWARD through the
+   cycle — it never snaps back through the positions it just left.         */
+var ARM_ANGLES = [0, -32, -88, -148, -238];   // entry, catch, pull, push, recovery
+(function(){
+  var steps = $$("#ar-steps .step");
+  var i = 0, turns = 0, timer = null;
+
+  function show(n, advancing){
+    if(advancing && n <= i) turns++;
+    i = n;
+    var f = ARM_ANGLES[i] - 360 * turns;
+    setPose("arm", {"--armF": f + "deg", "--armB": (f - 180) + "deg", "--elbF": (i === 4 ? "-38deg" : "0deg")});
+    steps.forEach(function(b, k){ if(k === i) b.setAttribute("aria-current","step"); else b.removeAttribute("aria-current"); });
+    setText("ar-caption", steps[i].getAttribute("data-cap"));
+    setText("ar-count", pad(i+1) + " / 05");
+    learningState.currentSkill = "arms";
+    learningState.currentStep = i + 1;
+  }
+  steps.forEach(function(b, n){ b.addEventListener("click", function(){ stop(); show(n, false); }); });
+  $("#ar-next").addEventListener("click", function(){ stop(); show((i + 1) % 5, true); });
+
+  function stop(){ if(timer){ clearInterval(timer); timer = null; $("#ar-play").textContent = "Play Cycle"; $("#ar-play").setAttribute("aria-pressed","false"); } }
+  STOPPERS.arms = stop;
+
+  $("#ar-play").addEventListener("click", function(){
+    if(timer){ stop(); return; }
+    stopAll("arms");
+    this.textContent = "Pause"; this.setAttribute("aria-pressed","true");
+    timer = setInterval(function(){ show((i + 1) % 5, true); }, REDUCED ? 700 : 780);
+  });
+  setState("arm","freestyle");
+  show(0, false);
+})();
+
+/* ---- 10. SECTION 09 — COORDINATION TIMELINE ---------------------------- */
+(function(){
+  var LANES = {
+    arms:   [6, 31, 56, 81],
+    legs:   [6, 17, 28, 39, 50, 61, 72, 83],
+    breath: [31, 81],
+    body:   [22, 72]
+  };
+  $$("#co-tracks .track__lane").forEach(function(lane){
+    var name = lane.getAttribute("data-lane");
+    LANES[name].forEach(function(pos){
+      var b = document.createElement("span");
+      b.className = "beat" + (name === "body" ? " beat--wide" : "");
+      b.style.left = pos + "%";
+      b.setAttribute("data-pos", pos);
+      lane.appendChild(b);
+    });
+  });
+
+  var heads = $$("#co-tracks [data-head]");
+  var beats = $$("#co-tracks .beat");
+  var raf = null, t0 = 0, elapsed = 0;
+  var CYCLE = 4000;
+
+  function frame(now){
+    if(!t0) t0 = now;
+    var t = elapsed + (now - t0);
+    var p = (t % CYCLE) / CYCLE;                       // 0 → 1 through one cycle
+    var cycles = Math.floor(t / CYCLE);
+
+    heads.forEach(function(h){ h.style.left = (p * 100) + "%"; });
+    beats.forEach(function(b){
+      var d = Math.abs(+b.getAttribute("data-pos") - p * 100);
+      b.classList.toggle("is-hot", d < 6);
+    });
+
+    var a = -(cycles + p) * 360;                       // arms keep turning forward
+    setPose("coord", {
+      "--armF": a + "deg",
+      "--armB": (a - 180) + "deg",
+      "--trunk": (9 * Math.sin(p * Math.PI * 2)).toFixed(2) + "deg",
+      "--head": (p > 0.26 && p < 0.40) || (p > 0.76 && p < 0.90) ? "22deg" : "0deg"
+    });
+
+    var beat = Math.floor(p * 8);
+    setText("co-beat", "BEAT " + (beat + 1) + " / 8");
+    setText("co-caption", (p > 0.26 && p < 0.40) || (p > 0.76 && p < 0.90)
+      ? "Breathing — the body rolls, the head goes with it"
+      : "Arms pull · legs tick · body stays long");
+    raf = requestAnimationFrame(frame);
+  }
+
+  function play(){
+    if(raf) return;
+    stopAll("coord");
+    setState("coord","freestyle kicking");
+    setPose("coord", {"--dur":"120ms"});             // tighten easing while looping
+    t0 = 0; raf = requestAnimationFrame(frame);
+  }
+  function pause(){
+    if(raf){ cancelAnimationFrame(raf); raf = null; }
+    if(t0){ elapsed += (performance.now() - t0); t0 = 0; }
+    setText("co-caption","Paused — press play to see the four tracks line up");
+  }
+  function reset(){
+    pause(); elapsed = 0;
+    heads.forEach(function(h){ h.style.left = "0%"; });
+    beats.forEach(function(b){ b.classList.remove("is-hot"); });
+    setState("coord","freestyle");
+    setText("co-beat","BEAT 0 / 8");
+    setText("co-caption","Paused — press play to see the four tracks line up");
+  }
+  STOPPERS.coord = pause;
+
+  $("#co-play").addEventListener("click", play);
+  $("#co-pause").addEventListener("click", pause);
+  $("#co-reset").addEventListener("click", reset);
+  if(REDUCED){ $("#co-play").disabled = true; setText("co-caption","Reduced motion is on — timeline playback is disabled"); }
+})();
+
+/* ---- 11. SECTIONS 10 + 10b — STROKE EXPLORER & DETAIL ------------------ */
+(function(){
+  var STROKES = {
+    freestyle: {
+      n:"01", title:"Freestyle", sub:"Long, continuous and efficient.", base:"freestyle kicking",
+      badge:false, cycle:true, seq:["Entry","Catch","Pull","Push","Recovery","Breath"],
+      cards:[
+        ["Body","Stay long and close to the surface."],
+        ["Arms","Alternate your arms continuously."],
+        ["Legs","Use a relaxed flutter kick."],
+        ["Breath","Turn your head with your body to breathe."]
+      ],
+      phases:[
+        {cap:"Entry — fingertips first, arm long",        a:0,    x:{}},
+        {cap:"Catch — fingers turn down and hold water",  a:-32,  x:{}},
+        {cap:"Pull — the body moves past the hand",       a:-88,  x:{"--trunk":"6deg"}},
+        {cap:"Push — finish past the hip",                a:-148, x:{"--trunk":"-4deg"}},
+        {cap:"Recovery — relaxed arm swings forward",     a:-238, x:{"--elbF":"-38deg"}},
+        {cap:"Breath — head turns with the body roll",    a:-300, x:{"--trunk":"14deg","--head":"24deg"}}
+      ],
+      mistakes:[
+        {ak:"Lifting the head", ad:"Hips drop the moment you look forward.", as:"headhigh", dk:"Eyes down", dd:"Head in line, hips stay up.", ds:"streamlined"},
+        {ak:"Bent legs", ad:"Cycling knees create drag.", as:"bentknees", dk:"Long legs", dd:"Small kick from the hips.", ds:"kicking"},
+        {ak:"Crossing the centre line", ad:"The hand entering past the nose makes you snake.", as:"floatstar", dk:"Enter in front of the shoulder", dd:"Straight line, shoulder width.", ds:"streamlined"},
+        {ak:"Holding the breath", ad:"Tension builds and the stroke rushes.", as:"heldbreath", dk:"Breathe out constantly", dd:"Bubbles the whole time your face is in.", ds:"exhaling"}
+      ]
+    },
+    breaststroke: {
+      n:"02", title:"Breaststroke", sub:"Slow, symmetrical and easy to breathe.", base:"breaststroke",
+      badge:false, cycle:false, seq:["Pull","Breathe","Kick","Glide"],
+      cards:[
+        ["Body position","Body rises to breathe, then returns flat."],
+        ["Arm pull","Both arms sweep out and back in together."],
+        ["Kick","Heels to the hips, then a wide circle."],
+        ["Breath","Breathe forward every single stroke."],
+        ["Timing","Pull, breathe, kick, glide — in that order."]
+      ],
+      phases:[
+        {cap:"Pull — both hands sweep out together", a:-55,  x:{"--trunk":"6deg","--legF":"0deg","--legB":"0deg","--kneeF":"0deg","--kneeB":"0deg"}},
+        {cap:"Breathe — the chest lifts, chin forward", a:-105, x:{"--trunk":"18deg","--head":"20deg"}},
+        {cap:"Kick — heels to the hips, then push wide", a:-20,  x:{"--trunk":"2deg","--head":"0deg","--legF":"-8deg","--legB":"8deg","--kneeF":"-78deg","--kneeB":"-72deg"}},
+        {cap:"Glide — the quiet part where you travel", a:0,    x:{"--trunk":"0deg","--legF":"0deg","--legB":"0deg","--kneeF":"0deg","--kneeB":"0deg"}}
+      ],
+      mistakes:[
+        {ak:"Rushing the glide", ad:"No pause means no travel.", as:"normal", dk:"Hold the glide", dd:"Stay long for a full second.", ds:"streamlined"},
+        {ak:"Head always up", ad:"The neck tires and the hips sink.", as:"headhigh", dk:"Face returns to the water", dd:"Look down between strokes.", ds:"streamlined"},
+        {ak:"Wide, scooping arms", ad:"Big arm circles waste energy.", as:"floatstar", dk:"Short, tight pull", dd:"Hands stay in front of the shoulders.", ds:"streamlined"},
+        {ak:"Knees pulled forward", ad:"Knees under the chest stop you dead.", as:"bentknees", dk:"Heels to the hips", dd:"Feet come up, knees stay back.", ds:"kicking"}
+      ]
+    },
+    backstroke: {
+      n:"03", title:"Backstroke", sub:"Face up — breathing is always available.", base:"backstroke kicking",
+      badge:false, cycle:true, seq:["Entry","Catch","Pull","Push","Recovery"],
+      cards:[
+        ["Body position","Long and flat, ears in the water."],
+        ["Arm rotation","One arm enters as the other finishes."],
+        ["Flutter kick","Small, fast, just under the surface."],
+        ["Breathing","Regular and relaxed — your face never goes in."],
+        ["Alignment","Eyes up, hips up, swim in a straight line."]
+      ],
+      phases:[
+        {cap:"Entry — little finger first, above the shoulder", a:0,    x:{}},
+        {cap:"Catch — the hand holds water beside you",        a:-32,  x:{}},
+        {cap:"Pull — elbow bends, body rolls",                 a:-88,  x:{"--trunk":"8deg"}},
+        {cap:"Push — finish beside the hip",                   a:-148, x:{"--trunk":"-6deg"}},
+        {cap:"Recovery — straight arm travels over the top",   a:-250, x:{"--trunk":"0deg"}}
+      ],
+      mistakes:[
+        {ak:"Chin on the chest", ad:"Looking at your feet drops the hips.", as:"headhigh", dk:"Eyes straight up", dd:"Head back, ears in the water.", ds:"streamlined"},
+        {ak:"Sitting in the water", ad:"Hips drop and you plough along.", as:"hipssink", dk:"Hips at the surface", dd:"Stay long and flat.", ds:"streamlined"},
+        {ak:"Big bent knees", ad:"Knees break the surface, not the toes.", as:"bentknees", dk:"Small quick kick", dd:"Toes just break the surface.", ds:"kicking"},
+        {ak:"Swimming crooked", ad:"Uneven arms send you into the lane rope.", as:"floatstar", dk:"Even, alternating arms", dd:"Same rhythm on both sides.", ds:"streamlined"}
+      ]
+    },
+    butterfly: {
+      n:"04", title:"Butterfly", sub:"Ready for the hardest one?", base:"butterfly dolphin",
+      badge:true, cycle:true, seq:["Body wave","Dolphin kick","Double arm pull","Breath","Recovery"],
+      cards:[
+        ["Body wave","The movement starts at the chest, not the arms."],
+        ["Dolphin kick","Both legs move together, twice per stroke."],
+        ["Double arm pull","Both arms pull at the same time."],
+        ["Breath","A quick breath forward, chin low."],
+        ["Recovery","Arms swing over the water, relaxed."]
+      ],
+      phases:[
+        {cap:"Body wave — the chest presses down first", a:0,    x:{"--trunk":"-8deg"}},
+        {cap:"Dolphin kick — both legs together",       a:-40,  x:{"--trunk":"6deg"}},
+        {cap:"Double arm pull — both arms press back",  a:-95,  x:{"--trunk":"4deg"}},
+        {cap:"Breath — chin stays low and forward",     a:-155, x:{"--trunk":"20deg","--head":"18deg"}},
+        {cap:"Recovery — arms swing wide over the water", a:-250, x:{"--trunk":"-4deg","--head":"0deg"}}
+      ],
+      mistakes:[
+        {ak:"Lifting the head high", ad:"A high breath kills the rhythm.", as:"headhigh", dk:"Chin low", dd:"Breathe forward, close to the water.", ds:"streamlined"},
+        {ak:"Arms only", ad:"No body wave means no butterfly.", as:"normal", dk:"Wave from the chest", dd:"The body leads, the arms follow.", ds:"streamlined"},
+        {ak:"Separate legs", ad:"A flutter kick breaks the stroke.", as:"bentknees", dk:"Legs together", dd:"One dolphin movement, two kicks.", ds:"kicking"},
+        {ak:"Learning it first", ad:"Butterfly needs a strong base.", as:"heldbreath", dk:"Build the basics first", dd:"Float, glide and freestyle come before this.", ds:"streamlined"}
+      ]
+    }
+  };
+  var ORDER = ["freestyle","breaststroke","backstroke","butterfly"];
+
+  /* mount a swimmer that was created after page load */
+  var uid = 0;
+  function mount(host, state, mini){
+    var svg = TPL.content.querySelector("svg").cloneNode(true);
+    var key = "dyn" + (++uid);
+    frame(svg, mini, null);
+    host.setAttribute("data-swimmer", key);
+    host.appendChild(svg);
+    SW[key] = {svg:svg, mini:!!mini, annot:false, state:state};
+    paint(key, state);
+    return key;
+  }
+
+  var timer = null, phase = 0, turns = 0;
+
+  function render(name){
+    var s = STROKES[name];
+    learningState.currentStroke = name;
+    stopWatch();
+
+    setState("stroke", s.base);
+    setText("sx-caption", s.cards[0][1]);
+    setText("sx-phase","READY");
+    setText("sd-kicker","Stroke " + s.n + " of 04");
+    setText("sd-title", s.title);
+    setText("sd-sub", s.sub);
+    $("#sd-badge").hidden = !s.badge;
+
+    $$("#sx-tiles .tile").forEach(function(t){
+      t.setAttribute("aria-pressed", t.getAttribute("data-stroke") === name);
+    });
+
+    /* movement sequence chips */
+    var seq = $("#sd-seq"); seq.innerHTML = "";
+    s.seq.forEach(function(step, i){
+      var li = document.createElement("li");
+      li.className = "badge";
+      li.textContent = step;
+      li.setAttribute("data-phase", i);
+      seq.appendChild(li);
+      if(i < s.seq.length - 1){
+        var arrow = document.createElement("li");
+        arrow.className = "num"; arrow.textContent = "→";
+        seq.appendChild(arrow);
+      }
+    });
+
+    /* instructional cards */
+    var cards = $("#sd-cards"); cards.innerHTML = "";
+    cards.className = "grid " + (s.cards.length === 5 ? "g-5" : "g-4");
+    s.cards.forEach(function(c, i){
+      var d = document.createElement("div");
+      d.className = "card";
+      d.innerHTML = '<span class="card__k">' + pad(i+1) + '</span><span class="card__t">' + c[0] + '</span><span class="card__d">' + c[1] + '</span>';
+      cards.appendChild(d);
+    });
+
+    /* do / avoid comparison */
+    var mk = $("#sd-mistakes"); mk.innerHTML = "";
+    setText("sd-mistake-note","Four things beginners do in " + s.title.toLowerCase() + " — and what to do instead.");
+    s.mistakes.forEach(function(m){
+      var art = document.createElement("article");
+      art.className = "vs";
+      art.innerHTML =
+        '<div class="vs__side vs__side--avoid"><span class="vs__k">Avoid</span>' +
+          '<span class="ph stage--xs" data-slot="a" style="min-height:104px"></span>' +
+          '<p class="card__t" style="margin-top:10px">' + m.ak + '</p><p class="card__d">' + m.ad + '</p></div>' +
+        '<div class="vs__mid">VS</div>' +
+        '<div class="vs__side"><span class="vs__k">Do</span>' +
+          '<span class="ph stage--xs" data-slot="d" style="min-height:104px"></span>' +
+          '<p class="card__t" style="margin-top:10px">' + m.dk + '</p><p class="card__d">' + m.dd + '</p></div>';
+      mk.appendChild(art);
+      mount(art.querySelector('[data-slot="a"]'), m.as, true);
+      mount(art.querySelector('[data-slot="d"]'), m.ds, true);
+    });
+
+    /* comparison table column highlight */
+    $$("#cmp-table [data-col]").forEach(function(cell){
+      cell.classList.toggle("is-active", cell.getAttribute("data-col") === name);
+    });
+  }
+
+  function markPhase(i){
+    $$("#sd-seq .badge").forEach(function(b, n){ b.classList.toggle("badge--fill", n === i); });
+  }
+
+  function stopWatch(){
+    if(timer){ clearInterval(timer); timer = null; }
+    $("#sx-watch").textContent = "Watch Movement";
+    $("#sx-watch").setAttribute("aria-pressed","false");
+    markPhase(-1);
+  }
+  STOPPERS.stroke = stopWatch;
+
+  function stepPhase(){
+    var s = STROKES[learningState.currentStroke];
+    var p = s.phases[phase];
+    var a = p.a - (s.cycle ? 360 * turns : 0);
+    var vars = {"--armF": a + "deg", "--elbF":"0deg", "--head":"0deg", "--trunk":"0deg"};
+    /* freestyle + backstroke alternate; breaststroke + butterfly move together */
+    vars["--armB"] = (learningState.currentStroke === "breaststroke" || learningState.currentStroke === "butterfly")
+      ? a + "deg" : (a - 180) + "deg";
+    for(var k in p.x){ if(p.x.hasOwnProperty(k)) vars[k] = p.x[k]; }
+    setPose("stroke", vars);
+    setText("sx-caption", p.cap);
+    setText("sx-phase", s.seq[phase].toUpperCase());
+    markPhase(phase);
+    phase++;
+    if(phase >= s.phases.length){ phase = 0; turns++; }
+  }
+
+  $("#sx-watch").addEventListener("click", function(){
+    if(timer){ stopWatch(); return; }
+    stopAll("stroke");
+    this.textContent = "Pause"; this.setAttribute("aria-pressed","true");
+    phase = 0;
+    stepPhase();
+    timer = setInterval(stepPhase, REDUCED ? 900 : 950);
+  });
+  $("#sx-stop").addEventListener("click", function(){
+    stopWatch();
+    setState("stroke", STROKES[learningState.currentStroke].base);
+    setText("sx-phase","READY");
+  });
+
+  $$("#sx-tiles .tile").forEach(function(t){
+    t.addEventListener("click", function(){ render(t.getAttribute("data-stroke")); });
+  });
+
+  render("freestyle");
+  window.__strokeOrder = ORDER;
+})();
+
+/* ---- 12. SECTION 12 — STATIC MISTAKE CARDS (hover preview) ------------- */
+(function(){
+  $$("#mk-cards .vs").forEach(function(card){
+    var sides = $$("[data-swimmer]", card);
+    if(sides.length < 2) return;
+    var avoidKey = sides[0].getAttribute("data-swimmer");
+    var doKey    = sides[1].getAttribute("data-swimmer");
+    var avoid = card.getAttribute("data-avoid");
+    var fix   = card.getAttribute("data-do");
+    card.addEventListener("mouseenter", function(){ setState(avoidKey, fix); });
+    card.addEventListener("mouseleave", function(){ setState(avoidKey, avoid); });
+    /* the "do" side stays correct; only the mistake corrects itself on hover */
+    setState(doKey, fix);
+  });
+})();
+
+/* ---- 13. SECTION 14 — LEARNING PATH + PROGRESS INDICATOR --------------- */
+(function(){
+  var sections = $$("main .section");
+  var chapters = [];
+  sections.forEach(function(sec){
+    var c = sec.getAttribute("data-chapter");
+    if(chapters.indexOf(c) === -1) chapters.push(c);
+  });
+
+  /* build the dot rail */
+  var rail = $("#prg-dots");
+  chapters.forEach(function(c, i){
+    var w = document.createElement("span");
+    w.className = "pdot";
+    w.innerHTML = '<span class="pdot__b" title="' + c + '"></span>' + (i < chapters.length - 1 ? '<span class="pdot__l"></span>' : '');
+    rail.appendChild(w);
+  });
+  var dots = $$("#prg-dots .pdot");
+
+  var pathItems = $$("#path .path__i");
+  pathItems.forEach(function(b){
+    b.addEventListener("click", function(){
+      var t = $(b.getAttribute("data-target"));
+      if(t) t.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"start"});
+    });
+  });
+
+  var lastChapter = -1;
+  function update(){
+    var y = window.scrollY + 200;
+    var active = sections[0];
+    sections.forEach(function(sec){ if(sec.offsetTop <= y) active = sec; });
+
+    var ci = chapters.indexOf(active.getAttribute("data-chapter"));
+    if(ci !== lastChapter){
+      lastChapter = ci;
+      learningState.chapter = ci;
+      setText("prg-count", pad(ci + 1) + " / " + pad(chapters.length));
+      var name = chapters[ci].replace("&amp;","&");
+      setText("prg-name", name);
+      setText("prg-live","Section " + (ci + 1) + " of " + chapters.length + ", " + name);
+      dots.forEach(function(d, i){
+        d.classList.toggle("is-done", i < ci);
+        d.classList.toggle("is-current", i === ci);
+      });
+      $("#prg-fill").style.width = (((ci + 1) / chapters.length) * 100) + "%";
+    }
+
+    /* learning-path stage states, driven by the same scroll position */
+    var activeIndex = sections.indexOf(active);
+    pathItems.forEach(function(b){
+      var target = $(b.getAttribute("data-target"));
+      var idx = sections.indexOf(target);
+      var done = idx < activeIndex, current = idx === activeIndex;
+      b.classList.toggle("is-done", done && !current);
+      b.classList.toggle("is-current", current);
+      var st = $(".state", b);
+      if(st) st.textContent = current ? "Current" : done ? "Done" : "Upcoming";
+    });
+
+    /* nav highlight */
+    $$("[data-nav]").forEach(function(a){
+      a.classList.toggle("is-active", a.getAttribute("href") === "#" + active.id);
+    });
+  }
+
+  var ticking = false;
+  window.addEventListener("scroll", function(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){ update(); ticking = false; });
+  }, {passive:true});
+  window.addEventListener("resize", update);
+  update();
+})();
+
+/* ---- 14. SECTION 16 — FAQ ACCORDION (one open at a time) --------------- */
+(function(){
+  var btns = $$("#acc .acc__b");
+  btns.forEach(function(b){
+    var panel = b.parentNode.nextElementSibling;
+    b.addEventListener("click", function(){
+      var open = b.getAttribute("aria-expanded") === "true";
+      btns.forEach(function(o){
+        var p = o.parentNode.nextElementSibling;
+        o.setAttribute("aria-expanded","false");
+        p.style.height = "0px";
+      });
+      if(!open){
+        b.setAttribute("aria-expanded","true");
+        panel.style.height = panel.firstElementChild.offsetHeight + "px";
+      }
+    });
+  });
+})();
+
+/* ---- 15. SCROLL REVEAL ------------------------------------------------- */
+(function(){
+  var els = $$(".reveal");
+  if(!("IntersectionObserver" in window) || REDUCED){
+    els.forEach(function(e){ e.classList.add("is-in"); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add("is-in"); io.unobserve(en.target); }
+    });
+  }, {rootMargin:"0px 0px -12% 0px", threshold:0.05});
+  els.forEach(function(e){ io.observe(e); });
+})();
+
+/* ---- 16. THE ENVIRONMENT ----------------------------------------------
+   A single canvas of suspended particles behind the whole document, and a
+   scroll driver that carries the page from morning air down into the water
+   and back to the surface at the end.                                     */
+(function(){
+  var cv = $("#env-canvas");
+  if(!cv) return;
+  var ctx = cv.getContext("2d", {alpha:true});
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+  var W = 0, H = 0, motes = [], raf = null;
+
+  function size(){
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round(Math.min(84, (W * H) / 19000));
+    motes = [];
+    for(var i = 0; i < n; i++){
+      motes.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 0.7 + Math.random() * 2.6,
+        vy: -(0.05 + Math.random() * 0.22),
+        vx: (Math.random() - 0.5) * 0.16,
+        a: 0.14 + Math.random() * 0.4,
+        p: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function draw(t){
+    ctx.clearRect(0, 0, W, H);
+    for(var i = 0; i < motes.length; i++){
+      var m = motes[i];
+      m.y += m.vy; m.p += 0.006;
+      m.x += m.vx + Math.sin(m.p) * 0.16;
+      if(m.y < -8){ m.y = H + 8; m.x = Math.random() * W; }
+      if(m.x < -8) m.x = W + 8; else if(m.x > W + 8) m.x = -8;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.r, 0, 6.2832);
+      ctx.fillStyle = "rgba(255,255,255," + (m.a * (0.5 + 0.5 * Math.sin(m.p))).toFixed(3) + ")";
+      ctx.fill();
+    }
+    raf = requestAnimationFrame(draw);
+  }
+
+  function start(){ if(!raf && !REDUCED) raf = requestAnimationFrame(draw); }
+  function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; } }
+
+  size(); REDUCED ? draw(0) && stop() : start();
+  if(REDUCED){ stop(); ctx.clearRect(0,0,W,H); }
+  var rt;
+  window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(function(){ size(); }, 200); });
+  document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+
+  /* the depth of the whole page follows the lesson: air, then water, then
+     back to the surface for the closing invitation */
+  var root = document.documentElement;
+  function smooth(a, b, v){ var t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); }
+  var lastDepth = -1;
+  function depth(){
+    var max = document.body.scrollHeight - window.innerHeight;
+    var p = max > 0 ? window.scrollY / max : 0;
+    var d = smooth(0.04, 0.46, p) - 0.9 * smooth(0.80, 0.99, p);
+    d = Math.max(0, Math.min(1, d));
+    if(Math.abs(d - lastDepth) < 0.008) return;
+    lastDepth = d;
+    root.style.setProperty("--depth", d.toFixed(3));
+  }
+
+  /* the hero swimmer stands up out of the float as you scroll into the
+     first lesson, so the two sections share one continuous movement */
+  var heroStates = [
+    {to:.30, state:"floating idle", name:"FLOATING"},
+    {to:.62, state:"comfortable",   name:"UPRIGHT"},
+    {to:2,   state:"standing",      name:"STANDING"}
+  ];
+  var heroAt = -1;
+  function heroStory(){
+    var hero = $("#hero"); if(!hero || !SW.hero) return;
+    var h = hero.offsetHeight || 1;
+    var p = Math.min(1, Math.max(0, window.scrollY / h));
+    for(var i = 0; i < heroStates.length; i++){
+      if(p <= heroStates[i].to){
+        if(heroAt !== i){
+          heroAt = i;
+          setState("hero", heroStates[i].state);
+          setText("hero-state", "STATE — " + heroStates[i].name);
+        }
+        return;
+      }
+    }
+  }
+
+  var tick = false;
+  function onScroll(){
+    if(tick) return;
+    tick = true;
+    requestAnimationFrame(function(){ depth(); heroStory(); tick = false; });
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+  window.addEventListener("resize", onScroll);
+  depth(); heroStory();
+})();
+
+/* ---- 17. EXPOSE STATE FOR REVIEW / DEBUGGING --------------------------- */
+window.learningState = learningState;
+})();
+</script>
+</body>
+</html>

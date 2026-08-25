@@ -1,0 +1,71 @@
+/* =========================================================================
+   FIRST FLOAT — design tokens
+   Palette is taken from the art direction: paper white air, concrete
+   framing, and a pool that runs from bright surface to absorbed depth.
+   ========================================================================= */
+:root {
+  /* air + ground */
+  --paper: #f8f8f5;
+  --paper-warm: #fcfcfa;
+  --concrete: #d9d9d4;
+  --concrete-dark: #c3c3bd;
+  --concrete-shadow: #a9a9a2;
+
+  /* water, surface to floor */
+  --pool-surface: #48c7e6;
+  --pool-mid: #159fc5;
+  --pool-deep: #087fa8;
+  --pool-abyss: #05617f;
+  --pool-foam: #e6f7fc;
+
+  /* ink */
+  --ink: #151515;
+  --ink-2: #5a5a5a;
+  --ink-3: #777777;
+  --ink-inv: #ffffff;
+
+  /* greenery */
+  --leaf: #6d8f4a;
+  --leaf-light: #9fc06a;
+  --leaf-dark: #3f5c2c;
+
+  /* body */
+  --skin-hi: #f4d7be;
+  --skin: #e0b492;
+  --skin-mid: #c08f68;
+  --skin-shadow: #94664a;
+  --suit: #10203a;
+  --suit-hi: #24406b;
+  --cap: #10141c;
+
+  /* rules + glass */
+  --hair: rgba(21, 21, 21, 0.14);
+  --hair-soft: rgba(21, 21, 21, 0.08);
+  --hair-light: rgba(255, 255, 255, 0.4);
+
+  /* layout */
+  --gutter: 64px;
+  --shell: 1680px;
+  --header-h: 88px;
+
+  /* motion */
+  --t-fast: 220ms;
+  --t-mid: 480ms;
+  --t-slow: 900ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.24, 1);
+  --ease-soft: cubic-bezier(0.4, 0.14, 0.2, 1);
+
+  /* type */
+  --font-display: 'Archivo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-ui: 'Manrope', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  /* set by the scroll driver: 0 = above water, 1 = fully submerged */
+  --submersion: 0;
+}
+
+@media (max-width: 1280px) {
+  :root { --gutter: 40px; --header-h: 80px; }
+}
+@media (max-width: 767px) {
+  :root { --gutter: 20px; --header-h: 64px; }
+}

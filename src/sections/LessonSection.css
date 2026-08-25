@@ -1,0 +1,114 @@
+.lesson {
+  position: relative;
+  z-index: 10;
+  min-height: 112vh;
+  display: grid;
+  align-items: center;
+  padding: 0 var(--gutter);
+  pointer-events: none;
+}
+.lesson--left { justify-items: start; }
+.lesson--right { justify-items: end; }
+
+.lesson__panel {
+  pointer-events: auto;
+  width: min(430px, 92vw);
+  /* the panel is a pane of glass over the pool, not a card on a page */
+  background: rgba(255, 255, 255, 0.58);
+  /* the backdrop is a fixed scene that never stops moving, so this is
+     re-blurred every frame — keep the radius modest and skip the extra
+     saturate pass */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  padding: 40px 38px 36px;
+  box-shadow: 0 40px 90px -60px rgba(6, 48, 66, 0.7);
+  opacity: 0;
+  transform: translateY(34px);
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+}
+.lesson.is-in .lesson__panel { opacity: 1; transform: none; }
+
+.lesson__meta { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+.lesson__num {
+  font-family: var(--font-display);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.lesson__rule { flex: 0 0 28px; height: 1px; background: var(--hair); }
+
+.lesson__title {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.5vw, 38px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.026em;
+  text-wrap: balance;
+  margin-bottom: 16px;
+}
+
+.lesson__statement {
+  font-size: 15.5px;
+  line-height: 1.66;
+  color: var(--ink-2);
+  max-width: 40ch;
+}
+
+.lesson__notes {
+  margin-top: 30px;
+  border-top: 1px solid var(--hair-soft);
+}
+.lesson__notes > div {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--hair-soft);
+}
+.lesson__notes dt {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-3);
+  padding-top: 2px;
+}
+.lesson__notes dd { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.5; }
+
+.lesson__next {
+  margin-top: 28px;
+  display: inline-flex; align-items: center; gap: 11px;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink);
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(21, 21, 21, 0.3);
+  transition: border-color var(--t-mid) var(--ease);
+}
+.lesson__next svg { width: 24px; height: 8px; overflow: visible; transition: transform var(--t-mid) var(--ease); }
+.lesson__next:hover { border-color: var(--ink); }
+.lesson__next:hover svg { transform: translateX(7px); }
+
+/* deep chapters sit against dark water, so the pane inverts */
+.lesson.is-deep .lesson__panel {
+  background: rgba(4, 40, 56, 0.42);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+.lesson.is-deep .lesson__num,
+.lesson.is-deep .lesson__title,
+.lesson.is-deep .lesson__notes dd,
+.lesson.is-deep .lesson__next { color: #fff; }
+.lesson.is-deep .lesson__statement { color: rgba(255, 255, 255, 0.82); }
+.lesson.is-deep .lesson__notes dt { color: rgba(255, 255, 255, 0.6); }
+.lesson.is-deep .eyebrow { color: rgba(255, 255, 255, 0.6); }
+.lesson.is-deep .lesson__rule,
+.lesson.is-deep .lesson__notes,
+.lesson.is-deep .lesson__notes > div { border-color: rgba(255, 255, 255, 0.18); }
+.lesson.is-deep .lesson__next { border-bottom-color: rgba(255, 255, 255, 0.4); }
+.lesson.is-deep .lesson__next:hover { border-bottom-color: #fff; }
+
+@media (max-width: 900px) {
+  .lesson { min-height: 100vh; justify-items: center; }
+  .lesson__panel { padding: 30px 24px 28px; }
+  .lesson__notes > div { grid-template-columns: 88px 1fr; gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lesson__panel { opacity: 1; transform: none; }
+}

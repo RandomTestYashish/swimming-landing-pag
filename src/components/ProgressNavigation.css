@@ -1,0 +1,82 @@
+.prog {
+  position: fixed;
+  top: calc(var(--header-h) + 22px);
+  left: 0; right: 0;
+  z-index: 35;
+  pointer-events: none;
+}
+.prog__in {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  justify-content: center;
+}
+
+.prog__count {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.16em;
+  color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.prog__count b { color: var(--ink); font-weight: 600; }
+.prog__count i { font-style: normal; opacity: 0.5; }
+
+.prog__label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--ink);
+  white-space: nowrap;
+  min-width: 128px;
+}
+
+.prog__rail { display: flex; align-items: center; }
+.prog__step { display: flex; align-items: center; }
+.prog__step button {
+  pointer-events: auto;
+  position: relative;
+  display: grid; place-items: center;
+  width: 18px; height: 18px;
+}
+.prog__dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--ink-3); opacity: 0.5;
+  transition: transform var(--t-mid) var(--ease), opacity var(--t-mid) var(--ease), background var(--t-mid) var(--ease);
+}
+.prog__step.is-done .prog__dot { opacity: 0.85; }
+.prog__step.is-active .prog__dot {
+  background: var(--ink);
+  opacity: 1;
+  transform: scale(2.1);
+}
+.prog__step button:hover .prog__dot { transform: scale(1.9); opacity: 1; }
+
+.prog__link { width: 30px; height: 1px; background: var(--hair); }
+.prog__step.is-done .prog__link { background: rgba(21, 21, 21, 0.3); }
+
+.prog__tip {
+  position: absolute;
+  top: 20px; left: 50%;
+  transform: translate(-50%, -4px);
+  white-space: nowrap;
+  font-size: 9px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.prog__step button:hover .prog__tip,
+.prog__step button:focus-visible .prog__tip { opacity: 1; transform: translate(-50%, 0); }
+
+.prog__rule { width: 86px; height: 1px; background: var(--hair); overflow: hidden; }
+.prog__rule i {
+  display: block; height: 100%; background: var(--ink);
+  transform-origin: left; transition: transform var(--t-slow) var(--ease);
+}
+
+@media (max-width: 900px) {
+  .prog { top: calc(var(--header-h) + 10px); }
+  .prog__in { gap: 12px; }
+  .prog__label { display: none; }
+  .prog__link { width: 14px; }
+  .prog__rule { display: none; }
+}
