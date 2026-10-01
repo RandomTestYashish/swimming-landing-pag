@@ -18,10 +18,10 @@ type Note = { x: number; y: number; visible: boolean };
  *
  * Choosing a movement moves the camera to the angle that actually shows it
  * and pins one or two notes to the relevant part of the body. It is a
- * teaching view, not a model viewer — the reader never has to drag anything.
+ * teaching view, not a model viewer - the reader never has to drag anything.
  */
-export const MovementLab = forwardRef<HTMLElement, { reduced: boolean }>(
-  function MovementLab({ reduced }, ref) {
+export const MovementLab = forwardRef<HTMLElement, { reduced: boolean; theme: 'light' | 'dark' }>(
+  function MovementLab({ reduced, theme }, ref) {
     const [current, setCurrent] = useState<Movement>('body');
     const [playing, setPlaying] = useState(!reduced);
     const [speed, setSpeed] = useState(1);
@@ -69,6 +69,7 @@ export const MovementLab = forwardRef<HTMLElement, { reduced: boolean }>(
                   speed={speed}
                   reduced={reduced}
                   quality={quality}
+                  theme={theme}
                   resetKey={resetKey}
                   onProject={onProject}
                 />

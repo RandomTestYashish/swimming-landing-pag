@@ -7,7 +7,7 @@ export type Lesson = {
   title: string;
   /** one-line statement of what the swimmer is learning */
   statement: string;
-  /** two or three supporting notes — kept short by design */
+  /** two or three supporting notes - kept short by design */
   notes: { k: string; v: string }[];
   /** how deep the camera sits during this chapter, 0 = surface, 1 = deep */
   depth: number;
@@ -132,5 +132,33 @@ export const LESSONS: Lesson[] = [
     ],
     depth: 0.2,
     pose: 'glide',
+  },
+];
+
+/**
+ * The nine movements read as three phases of learning. Grouping them this
+ * way stops the section becoming nine identical rows, and it matches how
+ * the skills are actually taught: get comfortable, find the stroke, refine.
+ */
+export type ChapterGroup = { title: string; blurb: string; from: number; to: number };
+
+export const GROUPS: ChapterGroup[] = [
+  {
+    title: 'In the shallow end',
+    blurb: 'Everything here happens in water you can stand up in. Nothing is asked of you that you cannot stop doing.',
+    from: 0,
+    to: 3,
+  },
+  {
+    title: 'Finding the stroke',
+    blurb: 'Buoyancy and travel. The point is to move without effort before you try to move with force.',
+    from: 3,
+    to: 6,
+  },
+  {
+    title: 'Putting it together',
+    blurb: 'The arms, the breath, and the rhythm that joins them. Speed, if you want it, arrives after this.',
+    from: 6,
+    to: 9,
   },
 ];

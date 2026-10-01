@@ -1,14 +1,14 @@
 main.chapters {
   position: relative;
   z-index: 2;
-  background: var(--limestone);
+  background: var(--paper);
   padding: clamp(90px, 12vh, 150px) 0 clamp(40px, 6vh, 80px);
 }
 
+/* Left-aligned like every other block on the page. A centred intro here was
+   the one place the layout changed its mind about where a line starts. */
 .chapters__intro {
-  max-width: 900px;
-  margin: 0 auto clamp(60px, 9vh, 120px);
-  text-align: center;
+  margin: 0 0 clamp(60px, 9vh, 120px);
 }
 .chapters__title {
   font-family: var(--font-display);
@@ -17,6 +17,7 @@ main.chapters {
   line-height: 1.08;
   letter-spacing: -0.016em;
   margin: 20px 0 20px;
+  max-width: 720px; /* echoes the hero's measure */
   text-wrap: balance;
 }
 .chapters__lede {
@@ -24,5 +25,32 @@ main.chapters {
   line-height: 1.7;
   color: var(--ink-2);
   max-width: 56ch;
-  margin: 0 auto;
+  margin: 0;
+}
+
+/* The nine movements read as three phases, so the page never becomes nine
+   identical rows. Each phase gets one heading and one soft divider. */
+.phase { position: relative; }
+.phase + .phase { margin-top: clamp(56px, 8vh, 104px); }
+
+.phase__head {
+  display: grid;
+  gap: 12px;
+  padding-top: clamp(28px, 4vh, 52px);
+  padding-bottom: clamp(20px, 3vh, 36px);
+  border-top: 1px solid var(--hair);
+}
+.phase__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(26px, 2.8vw, 42px);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+.phase__blurb {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 54ch;
 }

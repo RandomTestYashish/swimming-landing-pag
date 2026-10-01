@@ -13,10 +13,11 @@ export const POOL = {
  * Pool floor and walls.
  *
  * Standard physically based surfaces, with caustics and depth absorption
- * patched into the shader — so the tile is genuinely lit by the moving
+ * patched into the shader - so the tile is genuinely lit by the moving
  * water above it rather than having a caustic image laid over the top.
  */
-export function PoolSurfaces({ quality }: { quality: 'high' | 'medium' | 'low' }) {
+export function PoolSurfaces({ quality, theme }: { quality: 'high' | 'medium' | 'low'; theme: 'light' | 'dark' }) {
+  const dark = theme === 'dark';
   const mat = useRef<THREE.MeshStandardMaterial>(null);
   const uniforms = useRef({ uTime: { value: 0 }, uCaustic: { value: quality === 'low' ? 0 : 1 } });
 
@@ -24,7 +25,7 @@ export function PoolSurfaces({ quality }: { quality: 'high' | 'medium' | 'low' }
     const c = document.createElement('canvas');
     c.width = c.height = 256;
     const ctx = c.getContext('2d')!;
-    ctx.fillStyle = '#dfe6e4';
+    ctx.fillStyle = '#dfe6e6';
     ctx.fillRect(0, 0, 256, 256);
     // grout: a soft valley, not a drawn line
     ctx.strokeStyle = 'rgba(120,140,142,0.5)';
@@ -80,17 +81,17 @@ export function PoolSurfaces({ quality }: { quality: 'high' | 'medium' | 'low' }
       {/* floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -POOL.depth, 0]} receiveShadow>
         <planeGeometry args={[POOL.width, POOL.length]} />
-        <meshStandardMaterial ref={mat} map={tile} roughness={0.72} metalness={0} onBeforeCompile={patch} />
+        <meshStandardMaterial ref={mat} map={tile} color={dark ? '#6d8a93' : '#ffffff'} roughness={0.72} metalness={0} onBeforeCompile={patch} />
       </mesh>
       {/* far wall */}
       <mesh position={[0, -POOL.depth / 2, -POOL.length / 2]} receiveShadow>
         <planeGeometry args={[POOL.width, POOL.depth]} />
-        <meshStandardMaterial map={tile} roughness={0.72} metalness={0} onBeforeCompile={patch} />
+        <meshStandardMaterial map={tile} color={dark ? '#6d8a93' : '#ffffff'} roughness={0.72} metalness={0} onBeforeCompile={patch} />
       </mesh>
       {/* near wall, seen from inside */}
       <mesh position={[0, -POOL.depth / 2, POOL.length / 2]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[POOL.width, POOL.depth]} />
-        <meshStandardMaterial map={tile} roughness={0.72} metalness={0} onBeforeCompile={patch} />
+        <meshStandardMaterial map={tile} color={dark ? '#6d8a93' : '#ffffff'} roughness={0.72} metalness={0} onBeforeCompile={patch} />
       </mesh>
     </group>
   );

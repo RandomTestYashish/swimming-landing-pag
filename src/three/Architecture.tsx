@@ -4,20 +4,21 @@ import { POOL } from './PoolSurfaces';
 
 /**
  * The room the pool sits in: a limestone deck, a low wall behind it, and a
- * mass of planting at one edge. Kept deliberately plain — the architecture
+ * mass of planting at one edge. Kept deliberately plain - the architecture
  * is a ground for the water, not a subject.
  */
-export function Architecture() {
+export function Architecture({ theme }: { theme: 'light' | 'dark' }) {
+  const dark = theme === 'dark';
   const stone = useMemo(() => {
     const c = document.createElement('canvas');
     c.width = c.height = 256;
     const ctx = c.getContext('2d')!;
-    ctx.fillStyle = '#e9e4d8';
+    ctx.fillStyle = '#e4e7e7';
     ctx.fillRect(0, 0, 256, 256);
     // fine aggregate, so the deck is not a flat fill under raking light
     for (let i = 0; i < 5200; i++) {
-      const v = 200 + Math.random() * 55;
-      ctx.fillStyle = `rgba(${v},${v - 6},${v - 18},${0.05 + Math.random() * 0.12})`;
+      const v = 198 + Math.random() * 55;
+      ctx.fillStyle = `rgba(${v},${v + 2},${v + 2},${0.05 + Math.random() * 0.12})`;
       ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.4, 1.4);
     }
     const t = new THREE.CanvasTexture(c);
@@ -46,25 +47,25 @@ export function Architecture() {
 
   return (
     <group>
-      {/* the coping the water meets — the brightest line in the frame */}
+      {/* the coping the water meets - the brightest line in the frame */}
       <mesh position={[0, 0.05, -POOL.length / 2 - 0.22]} receiveShadow castShadow>
         <boxGeometry args={[POOL.width + 40, 0.2, 0.44]} />
-        <meshStandardMaterial color="#f3eee2" roughness={0.82} />
+        <meshStandardMaterial color={dark ? "#434f57" : "#eff1f1"} roughness={0.82} />
       </mesh>
       {/* deck, running back from that edge */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, -POOL.length / 2 - 5]} receiveShadow>
         <planeGeometry args={[POOL.width + 40, 10]} />
-        <meshStandardMaterial map={stone} color="#d8d1bf" roughness={0.96} metalness={0} />
+        <meshStandardMaterial map={stone} color={dark ? "#2c363d" : "#d3d8d8"} roughness={0.96} metalness={0} />
       </mesh>
       {/* a low wall gives the deck an end and casts the long shadow */}
       <mesh position={[0, 0.78, -POOL.length / 2 - 9.6]} receiveShadow castShadow>
         <boxGeometry args={[POOL.width + 40, 1.56, 0.6]} />
-        <meshStandardMaterial color="#cbc3ae" roughness={0.97} />
+        <meshStandardMaterial color={dark ? "#222b31" : "#c2c8c8"} roughness={0.97} />
       </mesh>
       {/* the far building: a flat value that separates from the sky */}
       <mesh position={[0, 5.4, -POOL.length / 2 - 17]}>
         <planeGeometry args={[POOL.width + 60, 9.6]} />
-        <meshBasicMaterial color="#e2dbca" />
+        <meshBasicMaterial color={dark ? "#19222a" : "#dde1e1"} />
       </mesh>
 
       {canopy.map((c, i) => (
@@ -77,7 +78,7 @@ export function Architecture() {
       {[0, 1].map((i) => (
         <mesh key={i} position={[17 + i * 5, 1.9, -1 - i * 5]}>
           <cylinderGeometry args={[0.13, 0.19, 4.2, 8]} />
-          <meshStandardMaterial color="#8d8474" roughness={1} />
+          <meshStandardMaterial color={dark ? "#2a3028" : "#8d8a80"} roughness={1} />
         </mesh>
       ))}
     </group>

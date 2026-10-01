@@ -1,3 +1,4 @@
+import { Arrow } from '../components/shared/Arrow';
 import './Footer.css';
 
 export function Footer({ onRestart }: { onRestart: () => void }) {
@@ -9,9 +10,7 @@ export function Footer({ onRestart }: { onRestart: () => void }) {
           <h2 className="ft__title">Start with one movement.<br />Then build from there.</h2>
           <button className="ft__cta" onClick={onRestart}>
             <span>Back to the surface</span>
-            <svg viewBox="0 0 24 8" aria-hidden="true" focusable="false">
-              <path d="M24 4H3M6.5 0.8 3 4l3.5 3.2" fill="none" stroke="currentColor" strokeWidth="1" />
-            </svg>
+            <Arrow back />
           </button>
         </div>
 

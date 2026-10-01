@@ -5,20 +5,21 @@ import { SwimmingHero } from './components/SwimmingHero/SwimmingHero';
 import { MovementLab } from './components/MovementLab/MovementLab';
 import { LessonSection } from './sections/LessonSection';
 import { Footer } from './sections/Footer';
-import { LESSONS } from './data/lessons';
+import { LESSONS, GROUPS } from './data/lessons';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useSmoothScroll } from './hooks/useSmoothScroll';
+import { useTheme } from './hooks/useTheme';
 import './App.css';
 
 export default function App() {
   const reduced = useReducedMotion();
+  const [theme, toggleTheme] = useTheme();
   const lenis = useSmoothScroll(!reduced);
 
   const [active, setActive] = useState(0);
   const chapters = useRef<(HTMLElement | null)[]>([]);
   const lab = useRef<HTMLElement>(null);
   const activeRef = useRef(0);
-  const bounds = useRef<{ mid: number }[]>([]);
 
   const scrollTo = useCallback(
     (target: number | HTMLElement) => {
@@ -51,49 +52,39 @@ export default function App() {
     return () => io.disconnect();
   }, []);
 
-  /* chapter offsets, measured on layout rather than on every frame */
+  /* Which chapter is open is decided by a centre-line observer rather than
+     a scroll handler: the band is one pixel tall at the middle of the
+     viewport, so exactly one chapter can be crossing it. */
   useEffect(() => {
-    const measure = () => {
-      bounds.current = (chapters.current.filter(Boolean) as HTMLElement[]).map((el) => ({
-        mid: el.getBoundingClientRect().top + window.scrollY + el.offsetHeight / 2,
-      }));
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    const id = window.setTimeout(measure, 700);
-    return () => { window.removeEventListener('resize', measure); window.clearTimeout(id); };
-  }, []);
-
-  /* whichever chapter's middle is nearest the middle of the screen is open */
-  useEffect(() => {
-    let ticking = false;
-    const read = () => {
-      ticking = false;
-      const eye = window.scrollY + window.innerHeight * 0.5;
-      let idx = 0;
-      let best = Infinity;
-      bounds.current.forEach((b, i) => {
-        const d = Math.abs(b.mid - eye);
-        if (d < best) { best = d; idx = i; }
-      });
-      if (idx !== activeRef.current) { activeRef.current = idx; setActive(idx); }
-    };
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(read); } };
-    read();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const els = chapters.current.filter(Boolean) as HTMLElement[];
+    if (!els.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const i = els.indexOf(e.target as HTMLElement);
+          if (i >= 0 && i !== activeRef.current) {
+            activeRef.current = i;
+            setActive(i);
+          }
+        }
+      },
+      { rootMargin: '-50% 0px -50% 0px', threshold: 0 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
 
   return (
     <>
       <a className="skip-link" href="#chapter-01">Skip to the lessons</a>
 
-      <Header onJump={jumpHref} />
+      <Header onJump={jumpHref} theme={theme} onToggleTheme={toggleTheme} />
       <ProgressNavigation lessons={LESSONS} active={active} onJump={jumpTo} />
 
-      <SwimmingHero reduced={reduced} onStart={() => lab.current && scrollTo(lab.current)} />
+      <SwimmingHero reduced={reduced} theme={theme} onStart={() => lab.current && scrollTo(lab.current)} />
 
-      <MovementLab reduced={reduced} ref={lab} />
+      <MovementLab reduced={reduced} theme={theme} ref={lab} />
 
       <main className="chapters">
         <div className="chapters__intro shell">
@@ -105,15 +96,27 @@ export default function App() {
           </p>
         </div>
 
-        {LESSONS.map((l, i) => (
-          <LessonSection
-            key={l.id}
-            lesson={l}
-            index={i}
-            isLast={i === LESSONS.length - 1}
-            onNext={() => jumpTo(Math.min(i + 1, LESSONS.length - 1))}
-            ref={(el) => { chapters.current[i] = el; }}
-          />
+        {GROUPS.map((group, gi) => (
+          <section className="phase" key={group.title} aria-labelledby={`phase-${gi}`}>
+            <div className="phase__head shell">
+              <h3 className="phase__title" id={`phase-${gi}`}>{group.title}</h3>
+              <p className="phase__blurb">{group.blurb}</p>
+            </div>
+
+            <div className="phase__rows">
+              {LESSONS.slice(group.from, group.to).map((l, li) => {
+                const i = group.from + li;
+                return (
+                  <LessonSection
+                    key={l.id}
+                    lesson={l}
+                    index={i}
+                    ref={(el) => { chapters.current[i] = el; }}
+                  />
+                );
+              })}
+            </div>
+          </section>
         ))}
       </main>
 

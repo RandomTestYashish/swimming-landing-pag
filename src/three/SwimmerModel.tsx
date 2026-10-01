@@ -19,7 +19,7 @@ const TAU = Math.PI * 2;
 
 /* Where each lesson freezes the stroke, and what it lets keep moving.
    `stream` holds both arms extended in front, which is what body position
-   and kick actually want — the alternating cycle would misrepresent them. */
+   and kick actually want - the alternating cycle would misrepresent them. */
 const FOCUS: Record<Movement, {
   phase: number; live: boolean; legs: number; roll: number; stream?: boolean;
 }> = {

@@ -4,6 +4,24 @@
   z-index: 40;
   pointer-events: none;
 }
+/* Its own layer rather than a pseudo-element: the header's z-index opens a
+   stacking context, and a backdrop trapped inside it would paint over the
+   progress rail instead of behind it. Sits under both, covers both. */
+.chrome-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: calc(var(--header-h) + 56px);
+  z-index: var(--z-chrome);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--hair-soft);
+  opacity: 0;
+  transition: opacity var(--t-mid) var(--ease);
+  pointer-events: none;
+}
+.chrome-bg.is-on { opacity: 1; }
+
 .hdr__in {
   display: flex;
   align-items: flex-start;
@@ -17,10 +35,10 @@
   pointer-events: auto;
   display: block;
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 19px;
-  line-height: 0.92;
-  letter-spacing: -0.018em;
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 0.96;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   color: var(--ink);
 }
@@ -70,7 +88,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 8px var(--gutter) 22px;
-  background: rgba(248, 248, 245, 0.94);
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--hair-soft);
@@ -92,3 +110,17 @@
 @media (min-width: 901px) {
   .hdr__burger { display: none; }
 }
+
+.hdr__theme {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: -6px;
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.hdr__theme:hover { color: var(--ink); background: var(--surface-2); }
+@media (max-width: 900px) { .hdr__theme { margin-right: 4px; } }

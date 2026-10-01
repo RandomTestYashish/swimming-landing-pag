@@ -1,70 +1,116 @@
 /* =========================================================================
-   FIRST FLOAT — design tokens
-   Palette is taken from the art direction: paper white air, concrete
-   framing, and a pool that runs from bright surface to absorbed depth.
+   FIRST FLOAT - design tokens
+
+   Palette family: cold luxury (silver-grey, chrome, smoke) with a single
+   locked water accent. Deliberately not the warm limestone/cream family:
+   every premium-consumer page reaches for that, and the brand disappears
+   into it.
+
+   One accent, one radius scale, one theme per page. Dark mode is a real
+   variant of the same pool at dusk, not an inversion.
    ========================================================================= */
 :root {
-  /* air + ground: pale limestone, held slightly grey so it never reads
-     as cream */
-  --paper: #f6f3ec;
-  --limestone: #f2efe8;
-  --limestone-deep: #e7e2d6;
-  --paper-warm: #fbf9f4;
-  --concrete: #d9d6cd;
-  --concrete-dark: #c3c0b6;
-  --concrete-shadow: #a9a69c;
+  color-scheme: light dark;
 
-  /* water, surface to floor — muted, never neon */
-  --pool-surface: #6fb6cf;
-  --pool-mid: #2f8aab;
-  --pool-deep: #12617f;
-  --pool-abyss: #0b4459;
-  --pool-foam: #e4f0f3;
-  --navy: #17293c;
+  /* --- shape: one scale, used everywhere --- */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-pill: 999px;
 
-  /* ink */
-  --ink: #151515;
-  --ink-2: #4f4f4c;
-  --ink-3: #6d6d68;
-  --ink-inv: #ffffff;
-
-  /* greenery */
-  --leaf: #6d8f4a;
-  --leaf-light: #9fc06a;
-  --leaf-dark: #3f5c2c;
-
-  /* body */
-  --skin-hi: #f4d7be;
-  --skin: #e0b492;
-  --skin-mid: #c08f68;
-  --skin-shadow: #94664a;
-  --suit: #10203a;
-  --suit-hi: #24406b;
-  --cap: #10141c;
-
-  /* rules + glass */
-  --hair: rgba(21, 21, 21, 0.14);
-  --hair-soft: rgba(21, 21, 21, 0.08);
-  --hair-light: rgba(255, 255, 255, 0.4);
-
-  /* layout */
+  /* --- layout --- */
   --gutter: 64px;
   --shell: 1680px;
   --header-h: 88px;
 
-  /* motion */
+  /* --- motion (MOTION_INTENSITY 7) --- */
   --t-fast: 220ms;
-  --t-mid: 480ms;
+  --t-mid: 460ms;
   --t-slow: 900ms;
   --ease: cubic-bezier(0.22, 0.61, 0.24, 1);
   --ease-soft: cubic-bezier(0.4, 0.14, 0.2, 1);
 
-  /* type */
-  --font-display: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  /* --- type: two families, no more --- */
+  --font-display: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
   --font-ui: 'Manrope', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-  /* set by the scroll driver: 0 = above water, 1 = fully submerged */
-  --submersion: 0;
+  /* --- z scale, documented so nothing invents its own --- */
+  --z-scene: 0;
+  --z-content: 2;
+  --z-chrome: 30; --z-rail: 35;
+  --z-header: 40;
+  --z-grain: 60;
+}
+
+/* ---------- light: an indoor pool hall, late morning ---------- */
+:root,
+:root[data-theme='light'] {
+  --paper: #eff1f1;
+  --surface: #e6e9e9;
+  --surface-2: #dbdfdf;
+  --surface-3: #cdd3d3;
+
+  --ink: #14181a;
+  --ink-2: #414749;
+  --ink-3: #5e686b;
+
+  --accent: #10607c;
+  --accent-soft: #e2edf1;
+
+  --hair: rgba(20, 24, 26, 0.14);
+  --hair-soft: rgba(20, 24, 26, 0.08);
+
+  /* water, surface to floor */
+  --pool-surface: #6fb6cf;
+  --pool-mid: #2f8aab;
+  --pool-deep: #12617f;
+  --pool-abyss: #0b4459;
+}
+
+/* ---------- dark: the same pool at dusk, lit from within ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #11161a;
+    --surface: #171e22;
+    --surface-2: #1e262b;
+    --surface-3: #2a3338;
+
+    --ink: #eef1f2;
+    --ink-2: #b2bbbe;
+    --ink-3: #8c979b;
+
+    --accent: #5cb6d6;
+    --accent-soft: #15303c;
+
+    --hair: rgba(238, 241, 242, 0.16);
+    --hair-soft: rgba(238, 241, 242, 0.09);
+
+    --pool-surface: #2e7b96;
+    --pool-mid: #1a5a75;
+    --pool-deep: #0d3b50;
+    --pool-abyss: #072634;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #11161a;
+  --surface: #171e22;
+  --surface-2: #1e262b;
+  --surface-3: #2a3338;
+
+  --ink: #eef1f2;
+  --ink-2: #b2bbbe;
+  --ink-3: #8c979b;
+
+  --accent: #5cb6d6;
+  --accent-soft: #15303c;
+
+  --hair: rgba(238, 241, 242, 0.16);
+  --hair-soft: rgba(238, 241, 242, 0.09);
+
+  --pool-surface: #2e7b96;
+  --pool-mid: #1a5a75;
+  --pool-deep: #0d3b50;
+  --pool-abyss: #072634;
 }
 
 @media (max-width: 1280px) {

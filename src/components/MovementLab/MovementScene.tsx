@@ -12,13 +12,15 @@ type Props = {
   speed: number;
   reduced: boolean;
   quality: Quality;
+  theme: 'light' | 'dark';
   resetKey: number;
   onProject: (points: { x: number; y: number; visible: boolean }[]) => void;
 };
 
 /** A training view: no pool walls, just the body in graded water. */
-function Backdrop() {
-  const uniforms = useRef({ uTime: { value: 0 } });
+function Backdrop({ theme }: { theme: 'light' | 'dark' }) {
+  const uniforms = useRef({ uTime: { value: 0 }, uDark: { value: theme === 'dark' ? 1 : 0 } });
+  uniforms.current.uDark.value = theme === 'dark' ? 1 : 0;
   useFrame((_, dt) => { uniforms.current.uTime.value += dt; });
   return (
     <mesh position={[0, -0.4, -4]} scale={[26, 14, 1]}>
@@ -27,12 +29,12 @@ function Backdrop() {
         uniforms={uniforms.current}
         vertexShader={`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`}
         fragmentShader={`
-          precision highp float; varying vec2 vUv; uniform float uTime;
+          precision highp float; varying vec2 vUv; uniform float uTime; uniform float uDark;
           ${CAUSTIC_GLSL}
           void main(){
-            vec3 top = vec3(0.929, 0.941, 0.925);
-            vec3 mid = vec3(0.667, 0.792, 0.827);
-            vec3 low = vec3(0.180, 0.443, 0.545);
+            vec3 top = mix(vec3(0.929, 0.941, 0.941), vec3(0.067, 0.086, 0.102), uDark);
+            vec3 mid = mix(vec3(0.667, 0.792, 0.827), vec3(0.102, 0.263, 0.345), uDark);
+            vec3 low = mix(vec3(0.180, 0.443, 0.545), vec3(0.027, 0.149, 0.212), uDark);
             float y = vUv.y;
             vec3 c = mix(low, mid, smoothstep(0.0, 0.62, y));
             c = mix(c, top, smoothstep(0.68, 1.0, y));
@@ -45,7 +47,7 @@ function Backdrop() {
   );
 }
 
-function Rig({ movement, resetKey, reduced, onProject }: Omit<Props, 'playing' | 'speed' | 'quality'>) {
+function Rig({ movement, resetKey, reduced, onProject }: Omit<Props, 'playing' | 'speed' | 'quality' | 'theme'>) {
   const { camera, size } = useThree();
   const want = useRef({ pos: new THREE.Vector3(), tgt: new THREE.Vector3() });
   const tgt = useRef(new THREE.Vector3());
@@ -85,7 +87,7 @@ function Rig({ movement, resetKey, reduced, onProject }: Omit<Props, 'playing' |
   return null;
 }
 
-export function MovementScene({ movement, playing, speed, reduced, quality, resetKey, onProject }: Props) {
+export function MovementScene({ movement, playing, speed, reduced, quality, theme, resetKey, onProject }: Props) {
   return (
     <Canvas
       dpr={quality === 'high' ? [1, 1.6] : [1, 1.2]}
@@ -94,8 +96,8 @@ export function MovementScene({ movement, playing, speed, reduced, quality, rese
       shadows={false}
       frameloop={reduced ? 'demand' : 'always'}
     >
-      <Stage quality={quality} />
-      <Backdrop />
+      <Stage quality={quality} theme={theme} variant="studio" />
+      <Backdrop theme={theme} />
       <Rig movement={movement} reduced={reduced} resetKey={resetKey} onProject={onProject} />
       <SwimmerModel
         movement={movement}

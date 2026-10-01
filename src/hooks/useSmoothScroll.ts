@@ -3,7 +3,7 @@ import Lenis from 'lenis';
 
 /**
  * Smooth scrolling for the cinematic passage between chapters.
- * Disabled outright under reduced motion — there the page scrolls natively.
+ * Disabled outright under reduced motion - there the page scrolls natively.
  */
 export function useSmoothScroll(enabled: boolean) {
   const ref = useRef<Lenis | null>(null);

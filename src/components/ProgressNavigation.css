@@ -45,14 +45,14 @@
 }
 .prog__step.is-done .prog__dot { opacity: 0.85; }
 .prog__step.is-active .prog__dot {
-  background: var(--ink);
+  background: var(--accent);
   opacity: 1;
   transform: scale(2.1);
 }
 .prog__step button:hover .prog__dot { transform: scale(1.9); opacity: 1; }
 
-.prog__link { width: 30px; height: 1px; background: var(--hair); }
-.prog__step.is-done .prog__link { background: rgba(21, 21, 21, 0.3); }
+.prog__link { width: 30px; height: 1px; background: var(--hair-soft); }
+.prog__step.is-done .prog__link { background: var(--hair); }
 
 .prog__tip {
   position: absolute;
@@ -69,7 +69,7 @@
 
 .prog__rule { width: 86px; height: 1px; background: var(--hair); overflow: hidden; }
 .prog__rule i {
-  display: block; height: 100%; background: var(--ink);
+  display: block; height: 100%; background: var(--accent);
   transform-origin: left; transition: transform var(--t-slow) var(--ease);
 }
 

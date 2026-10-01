@@ -4,8 +4,8 @@ import * as THREE from 'three';
  * A limb segment as a volume of revolution.
  *
  * Real limbs are not capsules: they have a belly and they taper. Passing a
- * profile gives each segment its own silhouette — a calf that swells high
- * and narrows into the achilles, a forearm thickest near the elbow — which
+ * profile gives each segment its own silhouette - a calf that swells high
+ * and narrows into the achilles, a forearm thickest near the elbow - which
  * is most of what makes a body read as anatomical at a distance.
  */
 export function limbGeometry(

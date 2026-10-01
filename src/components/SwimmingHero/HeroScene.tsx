@@ -7,7 +7,12 @@ import { WaterSurface } from '../../three/WaterSurface';
 import { SwimmerModel } from '../../three/SwimmerModel';
 import { Architecture } from '../../three/Architecture';
 
-type Props = { quality: Quality; reduced: boolean; pointer: React.RefObject<{ x: number; y: number }> };
+type Props = {
+  quality: Quality;
+  reduced: boolean;
+  theme: 'light' | 'dark';
+  pointer: React.RefObject<{ x: number; y: number }>;
+};
 
 /** Camera: a long lens from just above the water, barely moved by the pointer. */
 function HeroCamera({ reduced, pointer }: { reduced: boolean; pointer: Props['pointer'] }) {
@@ -48,7 +53,7 @@ function HeroCamera({ reduced, pointer }: { reduced: boolean; pointer: Props['po
   return null;
 }
 
-export function HeroScene({ quality, reduced, pointer }: Props) {
+export function HeroScene({ quality, reduced, theme, pointer }: Props) {
   return (
     <Canvas
       className="hero-canvas"
@@ -59,15 +64,15 @@ export function HeroScene({ quality, reduced, pointer }: Props) {
       frameloop={reduced ? 'demand' : 'always'}
     >
       <Suspense fallback={null}>
-        <Stage quality={quality} />
+        <Stage quality={quality} theme={theme} />
         <HeroCamera reduced={reduced} pointer={pointer} />
-        <Architecture />
-        <PoolSurfaces quality={quality} />
+        <Architecture theme={theme} />
+        <PoolSurfaces quality={quality} theme={theme} />
         {/* the body sits at the surface: back breaking it, everything else under */}
         <group position={[2.6, -0.12, -1.2]} rotation={[0, -0.13, 0]}>
           <SwimmerModel movement="full" playing={!reduced} speed={0.75} reduced={reduced} />
         </group>
-        <WaterSurface quality={quality} />
+        <WaterSurface quality={quality} theme={theme} />
       </Suspense>
     </Canvas>
   );

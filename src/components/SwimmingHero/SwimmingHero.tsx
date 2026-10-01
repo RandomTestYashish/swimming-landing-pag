@@ -19,7 +19,9 @@ export function detectQuality(): Quality {
   return 'medium';
 }
 
-export function SwimmingHero({ reduced, onStart }: { reduced: boolean; onStart: () => void }) {
+type HeroProps = { reduced: boolean; theme: 'light' | 'dark'; onStart: () => void };
+
+export function SwimmingHero({ reduced, theme, onStart }: HeroProps) {
   const [ready, setReady] = useState(false);
   const [gl, setGl] = useState<boolean | null>(null);
   const [quality] = useState<Quality>(() => detectQuality());
@@ -52,7 +54,7 @@ export function SwimmingHero({ reduced, onStart }: { reduced: boolean; onStart: 
         {gl === false && <WebGLFallback />}
         {gl && ready && (
           <Suspense fallback={<WebGLFallback />}>
-            <HeroScene quality={quality} reduced={reduced} pointer={pointer} />
+            <HeroScene quality={quality} reduced={reduced} theme={theme} pointer={pointer} />
           </Suspense>
         )}
         {gl && !ready && <WebGLFallback />}

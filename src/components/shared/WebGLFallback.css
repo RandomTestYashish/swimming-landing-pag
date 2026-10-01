@@ -2,16 +2,16 @@
 .glfb__sky {
   position: absolute; inset: 0;
   background:
-    radial-gradient(90% 60% at 22% -8%, #fffdf7 0%, rgba(255,253,247,0) 60%),
-    linear-gradient(180deg, #f7f4ec 0%, #efeade 62%, #e7e0d2 100%);
+    radial-gradient(90% 60% at 22% -8%, color-mix(in srgb, var(--paper) 60%, #fff) 0%, transparent 60%),
+    linear-gradient(180deg, var(--paper) 0%, var(--surface) 62%, var(--surface-2) 100%);
 }
 .glfb__deck {
   position: absolute; left: 0; right: 0; top: 52%; height: 12%;
-  background: linear-gradient(180deg, #ece6d9, #ded7c6);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface-3));
 }
 .glfb__water {
   position: absolute; left: 0; right: 0; bottom: 0; top: 62%;
-  background: linear-gradient(180deg, #63b9d6 0%, #2b8fb4 44%, #10688c 78%, #094f6d 100%);
+  background: linear-gradient(180deg, var(--pool-surface) 0%, var(--pool-mid) 44%, var(--pool-deep) 78%, var(--pool-abyss) 100%);
   overflow: hidden;
 }
 .glfb__caustics {

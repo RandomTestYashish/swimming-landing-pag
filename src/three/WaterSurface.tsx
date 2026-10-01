@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { POOL } from './PoolSurfaces';
@@ -29,6 +29,7 @@ uniform float uFar;
 uniform vec3  uEye;
 uniform vec3  uSun;
 uniform float uQuality;
+uniform float uDark;
 
 /* three broad, slow swells rather than a field of small noise */
 vec3 waveNormal(vec2 p, float t) {
@@ -59,10 +60,10 @@ float linearDepth(float z) {
 /* the same procedural sky the environment map is built from */
 vec3 sky(vec3 dir) {
   float y = clamp(dir.y * 0.5 + 0.5, 0.0, 1.0);
-  vec3 horizon = vec3(0.87, 0.90, 0.90);
-  vec3 zenith  = vec3(0.58, 0.72, 0.84);
+  vec3 horizon = mix(vec3(0.87, 0.90, 0.90), vec3(0.137, 0.188, 0.227), uDark);
+  vec3 zenith  = mix(vec3(0.58, 0.72, 0.84), vec3(0.047, 0.071, 0.102), uDark);
   vec3 c = mix(horizon, zenith, smoothstep(0.5, 1.0, y));
-  c = mix(vec3(0.94, 0.92, 0.87), c, smoothstep(0.42, 0.62, y));
+  c = mix(mix(vec3(0.94, 0.92, 0.87), vec3(0.18, 0.21, 0.24), uDark), c, smoothstep(0.42, 0.62, y));
   return c;
 }
 
@@ -90,8 +91,10 @@ void main() {
   vec3 refracted = texture2D(uScene, ruv).rgb;
 
   /* absorption: red goes first, so depth turns everything teal */
-  vec3 deep = vec3(0.020, 0.208, 0.294);
-  vec3 shallow = vec3(0.133, 0.510, 0.627);
+  /* at dusk the pool is lit from inside, so the water keeps its colour
+     while everything around it falls away */
+  vec3 deep = mix(vec3(0.020, 0.208, 0.294), vec3(0.016, 0.106, 0.161), uDark);
+  vec3 shallow = mix(vec3(0.133, 0.510, 0.627), vec3(0.075, 0.306, 0.396), uDark);
   vec3 tint = mix(shallow, deep, thickness);
   refracted = mix(refracted, tint, clamp(pow(thickness, 0.7) * 1.35, 0.0, 0.96));
 
@@ -99,17 +102,17 @@ void main() {
   vec3 refl = reflect(-view, n);
   vec3 reflected = sky(refl);
   float fres = pow(1.0 - clamp(dot(view, n), 0.0, 1.0), 4.6);
-  fres = mix(0.015, 0.42 + (1.0 - near) * 0.24, fres);
+  fres = mix(0.015, (0.42 + (1.0 - near) * 0.24) * (1.0 - uDark * 0.35), fres);
 
   vec3 col = mix(refracted, reflected, fres);
 
   vec3 h = normalize(uSun + view);
   float ndh = max(dot(n, h), 0.0);
-  /* one tight glint plus a very soft sheen — anything broader reads as stripes */
-  col += vec3(1.0, 0.985, 0.94) * (pow(ndh, 900.0) * 1.1 + pow(ndh, 90.0) * 0.035);
+  /* one tight glint plus a very soft sheen - anything broader reads as stripes */
+  col += vec3(1.0, 0.985, 0.94) * (pow(ndh, 900.0) * 1.1 + pow(ndh, 90.0) * 0.035) * (1.0 - uDark * 0.75);
 
   /* the meniscus: a thin bright band wherever something breaks the surface */
-  col += smoothstep(0.06, 0.0, thickness) * 0.16;
+  col += smoothstep(0.06, 0.0, thickness) * (0.16 - uDark * 0.09);
 
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
@@ -121,11 +124,12 @@ void main() {
  * The water surface.
  *
  * Renders the scene beneath it into an off-screen target each frame, then
- * samples that target with an offset driven by the wave normal — so the
+ * samples that target with an offset driven by the wave normal - so the
  * submerged half of the swimmer is genuinely refracted, and the depth
  * buffer tells the shader how much water it is being seen through.
  */
-export function WaterSurface({ quality }: { quality: 'high' | 'medium' | 'low' }) {
+export function WaterSurface({ quality, theme }: { quality: 'high' | 'medium' | 'low'; theme: 'light' | 'dark' }) {
+  const dark = theme === 'dark';
   const mesh = useRef<THREE.Mesh>(null);
   const { size, camera, gl, scene, viewport } = useThree();
 
@@ -143,6 +147,16 @@ export function WaterSurface({ quality }: { quality: 'high' | 'medium' | 'low' }
     return target;
   }, [size.width, size.height, viewport.dpr, quality]);
 
+  // The target is imperative, so R3F will not collect it. Without this every
+  // resize strands a full-size colour and depth buffer on the GPU.
+  useEffect(
+    () => () => {
+      fbo.depthTexture?.dispose();
+      fbo.dispose();
+    },
+    [fbo]
+  );
+
   const uniforms = useMemo(
     () => ({
       uScene: { value: fbo.texture },
@@ -154,8 +168,9 @@ export function WaterSurface({ quality }: { quality: 'high' | 'medium' | 'low' }
       uEye: { value: new THREE.Vector3() },
       uSun: { value: new THREE.Vector3(-0.55, 0.62, 0.56).normalize() },
       uQuality: { value: quality === 'low' ? 0.35 : 1 },
+      uDark: { value: dark ? 1 : 0 },
     }),
-    [fbo, camera, quality, size.width, size.height]
+    [fbo, camera, quality, size.width, size.height, dark]
   );
 
   // Taking priority here disables the automatic render, so the refraction
