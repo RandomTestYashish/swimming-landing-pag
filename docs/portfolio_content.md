@@ -14,6 +14,7 @@ Status labels:
 | Field | Value | Status |
 |---|---|---|
 | Name | Yashish Kapoor | Provided |
+| **On-screen name** | **Yashish** (first name only, per Yashish's instruction) | Provided |
 | Current title | Lead Product Designer | Provided |
 | Current employer | Airtel Digital | Provided |
 | Experience | About 6 years designing digital products and experiences | Provided ("approximately") |
@@ -89,21 +90,23 @@ The film uses words only, so projects can appear only as short typographic menti
 
 ## 6. Copy for the film (from the brief)
 
-All lines are written from the facts above and make no claims beyond them.
+Final wording and timing are in `portfolio_storyboard.md`. All lines are written from the facts above and make no claims beyond them.
 
 | Line | Source |
 |---|---|
-| YASHISH KAPOOR | Name |
+| Yashish | Name (first name only) |
+| Hello, / I'm | New supporting copy for the stack (needs approval) |
 | LEAD PRODUCT DESIGNER | Current title |
 | Strategy. Experience. Interaction. | Positioning |
 | MAKING COMPLEXITY FEEL SIMPLE. | Philosophy |
 | AIRTEL DIGITAL · WYNK MUSIC · PAYTM | Experience |
 | PRODUCT THINKING / INTERACTION / VISUAL STORYTELLING / MOTION | Strengths |
 | DESIGNING WHAT'S NEXT. | Closing line (tagline, makes no factual claim) |
-| Yashish Kapoor · Product Designer | Signature |
+| Yashish · Lead Product Designer | Signature (end card) |
 
 Two points to decide:
-- The signature says "Product Designer" but your title is "Lead Product Designer". Which should it say?
+- The end card currently says "Lead Product Designer", your actual title. Your draft said "Product Designer". Confirm which you want.
+- The reference uses sentence case, never ALL CAPS, so the storyboard sets the copy in title/sentence case with the words unchanged.
 - Company names are set as plain type, with **no logos**, unless you confirm that using the logos is allowed.
 
 ---
@@ -114,5 +117,5 @@ Two points to decide:
 2. **Timeline:** order and dates of the three roles. Was Wynk a separate employer or part of Airtel?
 3. **Wynk title** and which rewind campaign years.
 4. **End card:** portfolio URL, email or handle, if you want one shown.
-5. **Signature title:** "Product Designer" or "Lead Product Designer"?
+5. **Signature title:** "Lead Product Designer" (current default) or "Product Designer"?
 6. **Source material:** is there a portfolio site, resume PDF or Behance/Dribbble profile to check details against?
