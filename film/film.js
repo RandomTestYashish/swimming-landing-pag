@@ -63,7 +63,7 @@ function makeCanvas(w, h) {
 }
 
 // Tracking per style guide: −3% at display sizes, −1.5% at small sizes.
-function setFont(c, size, weight = 800) {
+function setFont(c, size, weight = 900) {
   c.font = `${weight} ${size}px ${FONT}`;
   const k = size >= 200 ? -0.03 : size <= 60 ? -0.015 : -0.025;
   c.letterSpacing = `${(k * size).toFixed(2)}px`;
@@ -74,7 +74,7 @@ function textWidth(c, s) {
 }
 
 // Size at which `s` spans `width` px.
-function fitSize(c, s, width, weight = 800) {
+function fitSize(c, s, width, weight = 900) {
   setFont(c, 100, weight);
   return (100 * width) / textWidth(c, s);
 }
@@ -82,9 +82,13 @@ function fitSize(c, s, width, weight = 800) {
 // Glyph x-offsets (relative to word start) so letters can be drawn one by one.
 function layout(c, word) {
   const xs = [];
-  for (let i = 0; i < word.length; i++) xs.push(textWidth(c, word.slice(0, i)));
+  // Each glyph sits where the kerned run up to and including it ends, minus its own advance.
+  for (let i = 0; i < word.length; i++) xs.push(textWidth(c, word.slice(0, i + 1)) - textWidth(c, word[i]));
   return { xs, width: textWidth(c, word) };
 }
+
+// Impact on a hard cut: scale jumps up by `amt` and settles over 5 frames.
+const punch = (f, at, amt = 0.06) => (f < at ? 1 : 1 + amt * (1 - expoOut(prog(f, at, at + 5))));
 
 function withScale(s, cx, cy, fn) {
   ctx.save();
@@ -106,7 +110,7 @@ function monogram(c, cx, cy, r, rot = 0) {
   c.translate(cx, cy); c.rotate(rot);
   c.fillStyle = C.sig;
   c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fill();
-  setFont(c, r * 1.25, 800);
+  setFont(c, r * 1.25, 900);
   c.fillStyle = '#FFFFFF';
   c.textAlign = 'center';
   c.fillText('Y', 0, r * 1.25 * CAP * 0.5);
@@ -238,14 +242,14 @@ function placeCard(w, h, cx, cy, yawDeg = 0, alpha = 1, blur = 0) {
 const DASH_COLORS = [C.coral, C.red, C.plum, C.lilac, C.amber, C.blush, C.ink, C.coral, C.red, C.blush];
 const dashes = (() => {
   const r = rng(7);
-  return Array.from({ length: 280 }, () => ({
-    a: r() * TAU, u: r(), w: 6 + r() * 6, len: 0.6 + r() * 0.8,
+  return Array.from({ length: 420 }, () => ({
+    a: r() * TAU, u: r(), w: 8 + r() * 9, len: 0.6 + r() * 0.8,
     color: DASH_COLORS[Math.floor(r() * DASH_COLORS.length)],
   }));
 })();
 
 function scene01(f) {
-  const discR = 0.09 * H, cx = W / 2, cy = H / 2;
+  const discR = 0.12 * H, cx = W / 2, cy = H / 2;
   ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
 
   // Iris flood: black grows out of the disc over 3 frames.
@@ -283,9 +287,11 @@ function scene01(f) {
     const r = f === 8 ? lerp(0.035 * H, discR, 0.6) : discR;
     ctx.fillStyle = C.ink;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
-    setFont(ctx, 54, 700);
-    ctx.fillStyle = C.type; ctx.textAlign = 'center';
-    ctx.fillText('Meet', cx, cy + 54 * CAP * 0.5);
+    withScale(punch(f, 8, 0.12), cx, cy, () => {
+      setFont(ctx, 80, 900);
+      ctx.fillStyle = C.type; ctx.textAlign = 'center';
+      ctx.fillText('Meet', cx, cy + 80 * CAP * 0.5);
+    });
   }
 }
 
@@ -295,12 +301,12 @@ function scene02(f) {
   const cx = W / 2, cy = H / 2;
 
   // Whisper: tiny lowercase name pushing in; letters drop from the left.
-  if (f <= 37) {
-    const s = lerp(1, 1.35, prog(f, 24, 37));
+  if (f <= 35) {
+    const s = lerp(1, 1.35, prog(f, 24, 35));
     withScale(s, cx, cy, () => {
-      setFont(ctx, 32, 800);
+      setFont(ctx, 32, 900);
       const word = 'yashish', L = layout(ctx, word);
-      const drop = f >= 37 ? 2 : f >= 36 ? 1 : 0;
+      const drop = f >= 35 ? 2 : f >= 34 ? 1 : 0;
       ctx.fillStyle = C.type; ctx.textAlign = 'left';
       for (let i = drop; i < word.length; i++) ctx.fillText(word[i], cx - L.width / 2 + L.xs[i], cy + 32 * CAP * 0.5);
     });
@@ -308,23 +314,23 @@ function scene02(f) {
   }
 
   // Stack: "Yashish" lands first (bottom-right), lines above type on at 1 char/frame.
-  const S = Math.min(fitSize(ctx, 'Yashish', W * 0.74), H * 0.38);
-  const step = 0.86 * S, margin = W * 0.02;
+  const S = Math.min(fitSize(ctx, 'Yashish', W * 0.9), H * 0.4);
+  const step = 0.82 * S, margin = W * 0.02;
   const blockH = 2 * step + CAP * S + 0.22 * S;
   const b1 = cy - blockH / 2 + CAP * S;
   const lines = [
-    { text: 'Hello,', x: margin, y: b1, align: 'left', start: 43 },
-    { text: "I'm", x: margin, y: b1 + step, align: 'left', start: 49 },
-    { text: 'Yashish', x: W - margin, y: b1 + 2 * step, align: 'right', start: 38 },
+    { text: 'Hello,', x: margin, y: b1, align: 'left', start: 40 },
+    { text: "I'm", x: margin, y: b1 + step, align: 'left', start: 46 },
+    { text: 'Yashish', x: W - margin, y: b1 + 2 * step, align: 'right', start: 36 },
   ];
-  const push = lerp(1, 1.02, prog(f, 53, 65));
+  const push = lerp(1, 1.02, prog(f, 49, 64)) * punch(f, 36, 0.08);
   const exitStart = [68, 66, 64]; // bottom line blurs first
 
   withScale(push, cx, cy, () => {
-    setFont(ctx, S, 800);
+    setFont(ctx, S, 900);
     lines.forEach((ln, i) => {
       if (f < ln.start) return;
-      const n = ln.start === 38 ? ln.text.length : Math.min(ln.text.length, f - ln.start + 1);
+      const n = ln.start === 36 ? ln.text.length : Math.min(ln.text.length, f - ln.start + 1);
       const p = prog(f, exitStart[i], exitStart[i] + 7);
       if (p >= 1) return;
       ctx.save();
@@ -346,10 +352,10 @@ const ROLE_SEQ = [
   { key: 'experience', word: 'Experience.', at: 96 },
   { key: 'interaction', word: 'Interaction.', at: 102 },
 ];
-const PORTRAIT_H = 0.62 * H, PORTRAIT_W = PORTRAIT_H * 9 / 16;
+const PORTRAIT_H = 0.76 * H, PORTRAIT_W = PORTRAIT_H * 9 / 16;
 
 function cardWord(word, w) {
-  return Math.min(72, fitSize(cardCtx, word, w * 0.8));
+  return Math.min(110, fitSize(cardCtx, word, w * 0.86));
 }
 
 function paintRoleCard(key, w, h, f, opts = {}) {
@@ -358,8 +364,8 @@ function paintRoleCard(key, w, h, f, opts = {}) {
     c.fillStyle = C.type;
     if (key === 'role') {
       const lines = ['Lead', 'Product', 'Designer'];
-      const size = fitSize(c, 'Designer', w * 0.78);
-      setFont(c, size, 800);
+      const size = fitSize(c, 'Designer', w * 0.82);
+      setFont(c, size, 900);
       c.textAlign = 'left';
       let budget = opts.chars ?? Infinity;
       lines.forEach((ln, i) => {
@@ -370,7 +376,7 @@ function paintRoleCard(key, w, h, f, opts = {}) {
     } else if (!opts.noWord) {
       const word = ROLE_SEQ.find((r) => r.key === key).word;
       const size = cardWord(word, w);
-      setFont(c, size, 800);
+      setFont(c, size, 900);
       c.textAlign = 'center';
       c.fillText(word, w / 2, h / 2 + size * CAP * 0.5);
     }
@@ -412,20 +418,20 @@ function scene03(f) {
 
   // Interaction: portrait → landscape, the word breaks out of the frame, then the group exits bottom-right.
   const m = expoOut(prog(f, 108, 114));
-  const w = lerp(PORTRAIT_W, W * 0.55, m), h = lerp(PORTRAIT_H, W * 0.55 * 9 / 16, m);
+  const w = lerp(PORTRAIT_W, W * 0.62, m), h = lerp(PORTRAIT_H, W * 0.62 * 9 / 16, m);
   const e = expoIn(prog(f, 112, 119));
   const gs = lerp(1, 0.7, e);
   const gx = cx + e * W * 0.75, gy = cy + e * H * 0.7;
   const word = 'Interaction.';
   const startSize = cardWord(word, PORTRAIT_W);
-  const size = lerp(startSize, 210, m);
+  const size = lerp(startSize, 300, m);
   const wordY = lerp(cy + startSize * CAP * 0.5, cy - h / 2 + size * CAP * 0.15, m);
 
   paintRoleCard('interaction', w, h, f, { noWord: true });
   ctx.save();
   ctx.translate(gx, gy); ctx.scale(gs, gs); ctx.translate(-cx, -cy);
   placeCard(w, h, cx, cy);
-  setFont(ctx, size, 800);
+  setFont(ctx, size, 900);
   ctx.fillStyle = C.type; ctx.textAlign = 'center';
   ctx.fillText(word, cx, wordY);
   ctx.restore();
@@ -439,7 +445,7 @@ const PHIL = [
   { word: 'feel', at: 144 },
   { word: 'simple.', at: 156 },
 ];
-const PHIL_SIZE = 220;
+const PHIL_SIZE = 300;
 
 // For each word after the first: which letters carry over from the previous word, and when the rest blink.
 const philPlan = (() => {
@@ -467,15 +473,15 @@ function scene04(f) {
   const cx = W / 2, cy = H / 2;
   let k = PHIL.length - 1;
   while (f < PHIL[k].at) k--;
-  setFont(ctx, PHIL_SIZE, 800);
+  setFont(ctx, PHIL_SIZE, 900);
   const base = cy + PHIL_SIZE * CAP * 0.5;
   const cur = PHIL[k], L = layout(ctx, cur.word), x0 = cx - L.width / 2;
-  const punch = cur.word === 'simple.' ? lerp(1, 1.15, expoOut(prog(f, 162, 172))) : 1;
-  const color = f <= 121 ? C.sig : C.type;
+  const grow = cur.word === 'simple.' ? lerp(1, 1.15, expoOut(prog(f, 162, 172))) : 1;
+  const color = f <= 121 || (cur.word === 'simple.' && f >= 162) ? C.sig : C.type;
   const local = f - cur.at;
   ctx.textAlign = 'left';
 
-  withScale(punch, cx, cy, () => {
+  withScale(grow * punch(f, cur.at, 0.08), cx, cy, () => {
     ctx.fillStyle = color;
     const plan = philPlan[k];
     if (!plan || local >= 3) {
@@ -518,7 +524,7 @@ function edge(x, y, w, h, radius) {
 function heroLines(lines, size, cx, cy, clip) {
   ctx.save();
   if (clip) { ctx.beginPath(); ctx.roundRect(...clip); ctx.clip(); }
-  setFont(ctx, size, 800);
+  setFont(ctx, size, 900);
   ctx.fillStyle = C.type; ctx.textAlign = 'center';
   const step = size * 0.86;
   const b1 = cy - ((lines.length - 1) * step) / 2 + size * CAP * 0.5;
@@ -534,19 +540,19 @@ function scene05(f) {
   if (f < 204) {
     heroField(heroACtx, 'airtel', t);
     const p = expoOut(prog(f, 198, 204));
-    const push = lerp(1, 1.03, prog(f, 180, 198));
+    const push = lerp(1, 1.03, prog(f, 180, 198)) * punch(f, 180, 0.05);
     const w = lerp(W, cw, p), h = lerp(H, ch, p), x = cx - w / 2, y = cy - h / 2;
     withScale(push, cx, cy, () => {
       coverInto(heroA, x, y, w, h, lerp(0, cr, p));
       if (p > 0) edge(x, y, w, h, lerp(0, cr, p));
-      const big = 290, small = fitSize(ctx, 'Digital', cw * 0.8);
+      const big = 380, small = fitSize(ctx, 'Digital', cw * 0.84);
       heroLines(['Airtel', 'Digital'], lerp(big, small, p), cx, cy, [x, y, w, h, lerp(0, cr, p)]);
     });
     return;
   }
 
   // Wynk Music: the card holds the field, the name flanks it.
-  const push = f < 222 ? lerp(1, 1.02, prog(f, 204, 222)) : 1.02;
+  const push = (f < 222 ? lerp(1, 1.02, prog(f, 204, 222)) : 1.02) * punch(f, 204, 0.05);
   const slide = inOut(prog(f, 222, 228));
   heroField(heroACtx, 'wynk', t);
 
@@ -562,9 +568,9 @@ function scene05(f) {
     if (slide < 1) {
       coverInto(heroA, x, y, cw, ch, cr);
       edge(x, y, cw, ch, cr);
-      setFont(ctx, 64, 800);
+      setFont(ctx, 120, 900);
       ctx.fillStyle = C.type;
-      const base = cy + 64 * CAP * 0.5, gap = W * 0.04;
+      const base = cy + 120 * CAP * 0.5, gap = W * 0.035;
       ctx.textAlign = 'right'; ctx.fillText('Wynk', x - gap, base);
       if (f >= 206) { ctx.textAlign = 'left'; ctx.fillText('Music', x + cw + gap, base); }
     }
@@ -573,7 +579,7 @@ function scene05(f) {
   // Paytm: a new card slides in over its own field.
   if (f >= 222) {
     const x = cx - cw / 2 + (1 - slide) * W * 0.62, y = cy - ch / 2;
-    const hold = lerp(1, 1.02, prog(f, 228, 239));
+    const hold = lerp(1, 1.02, prog(f, 228, 239)) * punch(f, 228, 0.04);
     withScale(hold, cx, cy, () => {
       ctx.save();
       ctx.shadowColor = rgba(C.ink, 0.45); ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
@@ -586,8 +592,8 @@ function scene05(f) {
       gradientField(ctx, cw, ch * 0.42, { a: C.coral, b: C.amber, glow: C.blush, shade: C.plum }, t);
       ctx.restore();
       edge(x, y, cw, ch, cr);
-      const size = fitSize(ctx, 'Paytm', cw * 0.62);
-      setFont(ctx, size, 800);
+      const size = fitSize(ctx, 'Paytm', cw * 0.78);
+      setFont(ctx, size, 900);
       ctx.fillStyle = C.type; ctx.textAlign = 'center';
       ctx.fillText('Paytm', x + cw / 2, y + ch * 0.29 + size * CAP * 0.5);
     });
@@ -654,9 +660,9 @@ function scene06(f) {
   const rot = isLast
     ? rad(((276 - 240) / FPS) * 20) + rad(40) * expoOut(prog(f, 276, 299))
     : rad(((f - 240) / FPS) * 20);
-  const pop = lerp(1.06, 1, expoOut(prog(local, 0, 5)));
+  const pop = lerp(1.12, 1, expoOut(prog(local, 0, 5))) * 1.18;
   const breathe = isLast ? 1 : lerp(0.97, 1.03, local / 13);
-  let textR = 170, size = 58;
+  let textR = 170, size = 62;
 
   ctx.fillStyle = C.ink; ctx.fillRect(0, 0, W, H);
   blob(ctx, cx, cy, 900, C.plum, 0.55);
@@ -700,7 +706,7 @@ function scene06(f) {
       ctx.beginPath(); ctx.arc(cx, cy, 240, 0, TAU); ctx.stroke();
       ctx.restore();
       disc(cx, cy, 222);
-      textR = 222; size = 52;
+      textR = 222; size = 54;
     } else {
       rays(cx, cy, 8, rot * 0.3, C.lilac, 0.18, 10);
       for (let i = 0; i < 16; i++) pill(cx, cy, rot + (i / 16) * TAU, 360, 150, 70, '#FF7A3D', C.coral);
@@ -709,7 +715,7 @@ function scene06(f) {
       disc(cx, cy, 268, '#F3EAFF', C.lilac);
       ctx.restore();
       disc(cx, cy, 192);
-      textR = 192; size = 68;
+      textR = 192; size = 76;
       // The highlight orbits the rim and settles — the word "Motion", literally moving.
       const a = rad(-120) + TAU * expoOut(prog(f, 276, 299));
       const hx = cx + Math.cos(a) * 150, hy = cy + Math.sin(a) * 150;
@@ -718,7 +724,7 @@ function scene06(f) {
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, 22, 0, TAU); ctx.fill();
     }
 
-    setFont(ctx, size, 800);
+    setFont(ctx, size, 900);
     ctx.fillStyle = C.type; ctx.textAlign = 'center';
     const step = size * 0.95;
     const b1 = cy - ((cur.lines.length - 1) * step) / 2 + size * CAP * 0.5;
@@ -734,13 +740,14 @@ function scene07(f) {
 
   if (f < 324) {
     ctx.fillStyle = C.ink; ctx.fillRect(0, 0, W, H);
-    const s = lerp(1, 0.95, prog(f, 312, 323));
+    const s = lerp(1, 0.95, prog(f, 312, 323)) * punch(f, 300, 0.05);
     withScale(s, cx, cy, () => {
-      setFont(ctx, 58, 800);
+      const size = 124;
+      setFont(ctx, size, 900);
       ctx.fillStyle = C.type; ctx.textAlign = 'left';
       const l1 = 'Designing', l2a = "what's", l2b = ' next.';
       const w1 = textWidth(ctx, l1), w2 = textWidth(ctx, l2a + l2b), wa = textWidth(ctx, l2a);
-      const step = 58 * 1.02, b1 = cy - step / 2 + 58 * CAP * 0.5;
+      const step = size * 0.98, b1 = cy - step / 2 + size * CAP * 0.5;
       if (f >= 300) ctx.fillText(l1, cx - w1 / 2, b1);
       if (f >= 306) ctx.fillText(l2a, cx - w2 / 2, b1 + step);
       if (f >= 312) ctx.fillText(l2b, cx - w2 / 2 + wa, b1 + step);
@@ -748,28 +755,39 @@ function scene07(f) {
     return;
   }
 
+  // End card: wordmark, monogram rolls in and docks, title types on, short hold.
+  // Loop-out (f346–359): the title types off, the wordmark drops its letters and the monogram
+  // glides back to centre at its opening size, so frame 359 flows straight into frame 0.
   ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
-  const size = 88, r = size * CAP * 0.56, gap = size * 0.2;
-  setFont(ctx, size, 800);
-  const ww = textWidth(ctx, 'Yashish');
+  const size = 156, r = size * CAP * 0.56, gap = size * 0.2;
+  setFont(ctx, size, 900);
+  const word = 'Yashish', L = layout(ctx, word), ww = L.width;
   const p = expoOut(prog(f, 330, 342));
   const left = lerp(cx - ww / 2, cx - (ww + gap + 2 * r) / 2, p);
-  const base = cy + size * CAP * 0.5 - 18;
-  ctx.fillStyle = C.sig; ctx.textAlign = 'left';
-  ctx.fillText('Yashish', left, base);
+  const base = cy + size * CAP * 0.5 - 30;
+  const markY = base - size * CAP * 0.5;
+  const drop = Math.floor(prog(f, 348, 354) * word.length);
+
+  withScale(punch(f, 324, 0.06), cx, cy, () => {
+    ctx.fillStyle = C.sig; ctx.textAlign = 'left';
+    for (let i = drop; i < word.length; i++) ctx.fillText(word[i], left + L.xs[i], base);
+
+    if (f >= 336) {
+      const sub = 'Lead Product Designer';
+      const on = prog(f, 335, 341), off = prog(f, 346, 349);
+      const n = Math.round(sub.length * on * (1 - off));
+      setFont(ctx, 46, 700);
+      ctx.fillStyle = rgba(C.ink, 0.72); ctx.textAlign = 'left';
+      const sw = textWidth(ctx, sub);
+      ctx.fillText(sub.slice(0, n), cx - sw / 2, base + 104);
+    }
+  });
 
   if (f >= 330) {
     const dock = cx - (ww + gap + 2 * r) / 2 + ww + gap + r;
-    monogram(ctx, lerp(W + r * 2, dock, p), base - size * CAP * 0.5, r, -TAU * (1 - p));
-  }
-
-  if (f >= 342) {
-    const sub = 'Lead Product Designer';
-    const n = Math.min(sub.length, Math.ceil((sub.length * (f - 341)) / 6));
-    setFont(ctx, 34, 700);
-    ctx.fillStyle = rgba(C.ink, 0.7); ctx.textAlign = 'left';
-    const sw = textWidth(ctx, sub);
-    ctx.fillText(sub.slice(0, n), cx - sw / 2, base + 76);
+    const q = inOut(prog(f, 352, 360));
+    const mx = lerp(lerp(W + r * 2, dock, p), cx, q);
+    monogram(ctx, mx, lerp(markY, cy, q), lerp(r, 0.035 * H, q), -TAU * (1 - p) - TAU * q);
   }
 }
 

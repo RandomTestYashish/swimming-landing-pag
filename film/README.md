@@ -6,12 +6,16 @@
   Open `index.html` in a browser to watch it loop, or `index.html?f=120` to inspect one frame.
 - `render.cjs`: renders every frame in headless Chromium and pipes them to ffmpeg:
   `NODE_PATH="$(npm root -g)" node film/render.cjs` → `film/out/yashish-portfolio-film.mp4`
-- `fonts/`: Inter Display Bold/ExtraBold (SIL OFL 1.1, see `LICENSE-Inter.txt`).
+- `fonts/`: Inter Display Bold/ExtraBold/Black (SIL OFL 1.1, see `LICENSE-Inter.txt`).
 
 `preview.html` is a player with a scrubber, scene jumps and the score in sync.
 
 ## Music
 
-`music.py` synthesises an original score (numpy only, 120 BPM, F minor) with every hit placed on a film frame.
+`music.py` synthesises an original upbeat score (numpy only, 120 BPM, A-flat major, four-on-the-floor, no transition effects) with every hit placed on a film frame. It is mixed on a circular buffer, so it loops seamlessly with the film.
 `python3 film/music.py` writes `out/score.wav`; `render.cjs` muxes it into the MP4 automatically when it exists.
 To swap in a licensed track, replace `out/score.wav` (15.0 s, 48 kHz) and re-render.
+
+## Loop
+
+Frames 346–359 collapse the end card back into the opening frame (the Y disc at centre), so frame 359 flows straight into frame 0. Set the MP4 to loop wherever it plays.

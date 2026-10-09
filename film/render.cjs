@@ -15,8 +15,8 @@ const range = (args.find((a) => a.startsWith('--frames=')) || '--frames=0-359').
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   page.on('pageerror', (e) => { console.error(e); process.exit(1); });
   await page.goto('file://' + path.join(__dirname, 'index.html') + '?still');
-  await page.evaluate(() => document.fonts.ready);
-  const fontsOk = await page.evaluate(() => document.fonts.check('800 100px "Inter Display"') && document.fonts.check('700 100px "Inter Display"'));
+  await page.evaluate(() => Promise.all(['700', '800', '900'].map((w) => document.fonts.load(`${w} 100px "Inter Display"`))));
+  const fontsOk = await page.evaluate(() => ['700', '800', '900'].every((w) => document.fonts.check(`${w} 100px "Inter Display"`)));
   if (!fontsOk) throw new Error('Inter Display failed to load');
 
   // The score (film/out/score.wav, from film/music.py) is muxed in when present.

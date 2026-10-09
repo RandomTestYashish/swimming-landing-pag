@@ -7,16 +7,18 @@
 <style>
   @font-face { font-family: "Inter Display"; font-weight: 700; src: url("fonts/InterDisplay-Bold.otf") format("opentype"); }
   @font-face { font-family: "Inter Display"; font-weight: 800; src: url("fonts/InterDisplay-ExtraBold.otf") format("opentype"); }
+  @font-face { font-family: "Inter Display"; font-weight: 900; src: url("fonts/InterDisplay-Black.otf") format("opentype"); }
   html, body { margin: 0; height: 100%; background: #050404; }
   body { display: grid; place-items: center; }
   canvas { width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; display: block; }
-  /* Preloads both weights so the first rendered frame never falls back. */
+  /* Preloads every weight so the first rendered frame never falls back. */
   .preload { position: absolute; opacity: 0; pointer-events: none; font-family: "Inter Display"; }
 </style>
 </head>
 <body>
 <span class="preload" style="font-weight:700">a</span>
 <span class="preload" style="font-weight:800">a</span>
+<span class="preload" style="font-weight:900">a</span>
 <canvas id="film" width="1920" height="1080"></canvas>
 <script src="film.js"></script>
 <script>
