@@ -8,4 +8,10 @@
   `NODE_PATH="$(npm root -g)" node film/render.cjs` → `film/out/yashish-portfolio-film.mp4`
 - `fonts/`: Inter Display Bold/ExtraBold (SIL OFL 1.1, see `LICENSE-Inter.txt`).
 
-The film is silent. Add a track later and nudge cut frames ±2 to land on its beats.
+`preview.html` is a player with a scrubber, scene jumps and the score in sync.
+
+## Music
+
+`music.py` synthesises an original score (numpy only, 120 BPM, F minor) with every hit placed on a film frame.
+`python3 film/music.py` writes `out/score.wav`; `render.cjs` muxes it into the MP4 automatically when it exists.
+To swap in a licensed track, replace `out/score.wav` (15.0 s, 48 kHz) and re-render.

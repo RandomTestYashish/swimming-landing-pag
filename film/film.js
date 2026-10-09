@@ -1,6 +1,7 @@
 // Yashish — portfolio film. 1920×1080, 24 fps, 360 frames.
 // Every frame is a pure function of its index: renderFrame(f) draws frame f.
-// Timings and scene numbering follow docs/portfolio_storyboard.md.
+// Timings and scene numbering follow docs/portfolio_storyboard.md, snapped to the
+// 120 BPM score in film/music.py (1 beat = 12 frames, 1 eighth = 6 frames).
 
 const W = 1920, H = 1080, FPS = 24, TOTAL = 360;
 
@@ -342,8 +343,8 @@ function scene02(f) {
 
 const ROLE_SEQ = [
   { key: 'strategy', word: 'Strategy.', at: 90 },
-  { key: 'experience', word: 'Experience.', at: 97 },
-  { key: 'interaction', word: 'Interaction.', at: 104 },
+  { key: 'experience', word: 'Experience.', at: 96 },
+  { key: 'interaction', word: 'Interaction.', at: 102 },
 ];
 const PORTRAIT_H = 0.62 * H, PORTRAIT_W = PORTRAIT_H * 9 / 16;
 
@@ -402,7 +403,7 @@ function scene03(f) {
       placeCard(PORTRAIT_W, PORTRAIT_H, cx - p * W * 0.42, cy, 40 * p, 1 - p * p);
       return;
     }
-    if (k < ROLE_SEQ.length - 1 || f < 110) {
+    if (k < ROLE_SEQ.length - 1 || f < 108) {
       paintRoleCard(ROLE_SEQ[k].key, PORTRAIT_W, PORTRAIT_H, f);
       placeCard(PORTRAIT_W, PORTRAIT_H, cx, cy);
       return;
@@ -410,9 +411,9 @@ function scene03(f) {
   }
 
   // Interaction: portrait → landscape, the word breaks out of the frame, then the group exits bottom-right.
-  const m = expoOut(prog(f, 110, 116));
+  const m = expoOut(prog(f, 108, 114));
   const w = lerp(PORTRAIT_W, W * 0.55, m), h = lerp(PORTRAIT_H, W * 0.55 * 9 / 16, m);
-  const e = expoIn(prog(f, 113, 119));
+  const e = expoIn(prog(f, 112, 119));
   const gs = lerp(1, 0.7, e);
   const gx = cx + e * W * 0.75, gy = cy + e * H * 0.7;
   const word = 'Interaction.';
@@ -435,7 +436,7 @@ function scene03(f) {
 const PHIL = [
   { word: 'Making', at: 120 },
   { word: 'complexity', at: 132 },
-  { word: 'feel', at: 146 },
+  { word: 'feel', at: 144 },
   { word: 'simple.', at: 156 },
 ];
 const PHIL_SIZE = 220;
@@ -532,8 +533,8 @@ function scene05(f) {
   // Airtel Digital: full-bleed hero, then zoom out into a card.
   if (f < 204) {
     heroField(heroACtx, 'airtel', t);
-    const p = expoOut(prog(f, 197, 204));
-    const push = lerp(1, 1.03, prog(f, 178, 197));
+    const p = expoOut(prog(f, 198, 204));
+    const push = lerp(1, 1.03, prog(f, 180, 198));
     const w = lerp(W, cw, p), h = lerp(H, ch, p), x = cx - w / 2, y = cy - h / 2;
     withScale(push, cx, cy, () => {
       coverInto(heroA, x, y, w, h, lerp(0, cr, p));
@@ -545,13 +546,13 @@ function scene05(f) {
   }
 
   // Wynk Music: the card holds the field, the name flanks it.
-  const push = f < 221 ? lerp(1, 1.02, prog(f, 204, 221)) : 1.02;
-  const slide = inOut(prog(f, 221, 227));
+  const push = f < 222 ? lerp(1, 1.02, prog(f, 204, 222)) : 1.02;
+  const slide = inOut(prog(f, 222, 228));
   heroField(heroACtx, 'wynk', t);
 
-  if (f >= 224) {
+  if (f >= 225) {
     heroField(heroBCtx, 'paytm', t);
-    const bgPush = lerp(1, 1.025, prog(f, 224, 239));
+    const bgPush = lerp(1, 1.025, prog(f, 225, 239));
     withScale(bgPush, cx, cy, () => ctx.drawImage(heroB, 0, 0));
   }
 
@@ -570,9 +571,9 @@ function scene05(f) {
   });
 
   // Paytm: a new card slides in over its own field.
-  if (f >= 221) {
+  if (f >= 222) {
     const x = cx - cw / 2 + (1 - slide) * W * 0.62, y = cy - ch / 2;
-    const hold = lerp(1, 1.02, prog(f, 227, 239));
+    const hold = lerp(1, 1.02, prog(f, 228, 239));
     withScale(hold, cx, cy, () => {
       ctx.save();
       ctx.shadowColor = rgba(C.ink, 0.45); ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
@@ -597,9 +598,9 @@ function scene05(f) {
 
 const CRAFT = [
   { lines: ['Product', 'thinking'], at: 240, state: 'petals' },
-  { lines: ['Interaction'], at: 253, state: 'circles' },
-  { lines: ['Visual', 'storytelling'], at: 265, state: 'pills' },
-  { lines: ['Motion'], at: 278, state: 'iris' },
+  { lines: ['Interaction'], at: 252, state: 'circles' },
+  { lines: ['Visual', 'storytelling'], at: 264, state: 'pills' },
+  { lines: ['Motion'], at: 276, state: 'iris' },
 ];
 
 function rays(cx, cy, n, rot, color, a, width) {
@@ -651,7 +652,7 @@ function scene06(f) {
   const local = f - cur.at;
   const isLast = cur.state === 'iris';
   const rot = isLast
-    ? rad(((278 - 240) / FPS) * 20) + rad(40) * expoOut(prog(f, 278, 301))
+    ? rad(((276 - 240) / FPS) * 20) + rad(40) * expoOut(prog(f, 276, 299))
     : rad(((f - 240) / FPS) * 20);
   const pop = lerp(1.06, 1, expoOut(prog(local, 0, 5)));
   const breathe = isLast ? 1 : lerp(0.97, 1.03, local / 13);
@@ -710,7 +711,7 @@ function scene06(f) {
       disc(cx, cy, 192);
       textR = 192; size = 68;
       // The highlight orbits the rim and settles — the word "Motion", literally moving.
-      const a = rad(-120) + TAU * expoOut(prog(f, 278, 301));
+      const a = rad(-120) + TAU * expoOut(prog(f, 276, 299));
       const hx = cx + Math.cos(a) * 150, hy = cy + Math.sin(a) * 150;
       const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 22);
       g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(1, 'rgba(255,255,255,0)');
@@ -731,17 +732,17 @@ function scene06(f) {
 function scene07(f) {
   const cx = W / 2, cy = H / 2;
 
-  if (f < 327) {
+  if (f < 324) {
     ctx.fillStyle = C.ink; ctx.fillRect(0, 0, W, H);
-    const s = lerp(1, 0.95, prog(f, 315, 326));
+    const s = lerp(1, 0.95, prog(f, 312, 323));
     withScale(s, cx, cy, () => {
       setFont(ctx, 58, 800);
       ctx.fillStyle = C.type; ctx.textAlign = 'left';
       const l1 = 'Designing', l2a = "what's", l2b = ' next.';
       const w1 = textWidth(ctx, l1), w2 = textWidth(ctx, l2a + l2b), wa = textWidth(ctx, l2a);
       const step = 58 * 1.02, b1 = cy - step / 2 + 58 * CAP * 0.5;
-      if (f >= 302) ctx.fillText(l1, cx - w1 / 2, b1);
-      if (f >= 308) ctx.fillText(l2a, cx - w2 / 2, b1 + step);
+      if (f >= 300) ctx.fillText(l1, cx - w1 / 2, b1);
+      if (f >= 306) ctx.fillText(l2a, cx - w2 / 2, b1 + step);
       if (f >= 312) ctx.fillText(l2b, cx - w2 / 2 + wa, b1 + step);
     });
     return;
@@ -751,13 +752,13 @@ function scene07(f) {
   const size = 88, r = size * CAP * 0.56, gap = size * 0.2;
   setFont(ctx, size, 800);
   const ww = textWidth(ctx, 'Yashish');
-  const p = expoOut(prog(f, 331, 343));
+  const p = expoOut(prog(f, 330, 342));
   const left = lerp(cx - ww / 2, cx - (ww + gap + 2 * r) / 2, p);
   const base = cy + size * CAP * 0.5 - 18;
   ctx.fillStyle = C.sig; ctx.textAlign = 'left';
   ctx.fillText('Yashish', left, base);
 
-  if (f >= 331) {
+  if (f >= 330) {
     const dock = cx - (ww + gap + 2 * r) / 2 + ww + gap + r;
     monogram(ctx, lerp(W + r * 2, dock, p), base - size * CAP * 0.5, r, -TAU * (1 - p));
   }
@@ -782,10 +783,10 @@ function renderFrame(f) {
   if (f <= 23) scene01(f);
   if (f >= 24 && f <= 75) scene02(f);
   if (f >= 68 && f <= 119) scene03(f);
-  if (f >= 120 && f <= 177) scene04(f);
-  if (f >= 178 && f <= 239) scene05(f);
-  if (f >= 240 && f <= 301) scene06(f);
-  if (f >= 302) scene07(f);
+  if (f >= 120 && f <= 179) scene04(f);
+  if (f >= 180 && f <= 239) scene05(f);
+  if (f >= 240 && f <= 299) scene06(f);
+  if (f >= 300) scene07(f);
   ctx.restore();
 }
 

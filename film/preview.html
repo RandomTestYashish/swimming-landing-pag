@@ -44,11 +44,12 @@
 <main>
   <header>
     <h1>Yashish <span>·</span> portfolio film</h1>
-    <div class="spec">1920×1080 · 24 fps · 360 frames · 15.0 s · silent</div>
+    <div class="spec">1920×1080 · 24 fps · 360 frames · 15.0 s · 120 BPM</div>
   </header>
 
   <div class="stage" id="stage" title="Click to play or pause">
     <canvas id="film" width="1920" height="1080" aria-label="Portfolio film preview"></canvas>
+    <audio id="score" src="out/score.mp3" preload="auto"></audio>
   </div>
 
   <div class="transport">
@@ -58,7 +59,7 @@
   </div>
 
   <nav class="scenes" id="scenes" aria-label="Scenes"></nav>
-  <p class="hint">Space plays or pauses · ← → step one frame · click a scene to jump to it</p>
+  <p class="hint">Press play for sound · Space plays or pauses · ← → step one frame · click a scene to jump to it</p>
 </main>
 
 <script src="film.js"></script>
@@ -66,13 +67,14 @@
 (() => {
   const SCENES = [
     ['01', 'Ignite', 0], ['02', 'Identity', 24], ['03', 'Role', 72], ['04', 'Philosophy', 120],
-    ['05', 'Experience', 178], ['06', 'Craft', 240], ['07', 'Signature', 302],
+    ['05', 'Experience', 180], ['06', 'Craft', 240], ['07', 'Signature', 300],
   ];
   const scrub = document.getElementById('scrub');
   const time = document.getElementById('time');
   const playBtn = document.getElementById('play');
   const icon = document.getElementById('icon');
   const nav = document.getElementById('scenes');
+  const score = document.getElementById('score');
   const PLAY = '<path d="M3 1.5v13L14 8z"/>';
   const PAUSE = '<path d="M3 1.5h3.5v13H3zM9.5 1.5H13v13H9.5z"/>';
 
@@ -97,15 +99,20 @@
     chips.forEach((c, i) => c.setAttribute('aria-current', i === k ? 'true' : 'false'));
   }
 
+  // While the score plays it is the clock, so picture and sound cannot drift apart.
   function tick(now) {
-    const f = Math.floor(((now - origin) / 1000) * FPS);
-    if (f !== frame) show(f);
+    const sec = score.paused ? (now - origin) / 1000 : score.currentTime;
+    const f = Math.floor(sec * FPS);
+    if (f >= TOTAL) { score.pause(); score.currentTime = 0; origin = now; show(0); score.play().catch(() => {}); }
+    else if (f !== frame) show(f);
     raf = requestAnimationFrame(tick);
   }
 
   function play() {
     playing = true;
     origin = performance.now() - (frame / FPS) * 1000;
+    score.currentTime = frame / FPS;
+    score.play().catch(() => {});
     icon.innerHTML = PAUSE; playBtn.setAttribute('aria-label', 'Pause');
     raf = requestAnimationFrame(tick);
   }
@@ -113,6 +120,7 @@
   function pause() {
     playing = false;
     cancelAnimationFrame(raf);
+    score.pause();
     icon.innerHTML = PLAY; playBtn.setAttribute('aria-label', 'Play');
   }
 
@@ -127,13 +135,12 @@
     if (e.key === 'ArrowLeft') { pause(); show(frame - 1); }
   });
 
-  // Open on the stack frame so the still preview reads at a glance; autoplay unless reduced motion is set.
+  // Open paused on the stack frame: sound can only start from a click, so Play starts picture and score together.
   Promise.all([
     document.fonts.load('700 100px "Inter Display"'),
     document.fonts.load('800 100px "Inter Display"'),
   ]).catch(() => {}).then(() => {
     show(60);
-    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) { frame = 0; show(0); play(); }
   });
 })();
 </script>

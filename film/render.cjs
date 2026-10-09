@@ -19,8 +19,12 @@ const range = (args.find((a) => a.startsWith('--frames=')) || '--frames=0-359').
   const fontsOk = await page.evaluate(() => document.fonts.check('800 100px "Inter Display"') && document.fonts.check('700 100px "Inter Display"'));
   if (!fontsOk) throw new Error('Inter Display failed to load');
 
+  // The score (film/out/score.wav, from film/music.py) is muxed in when present.
+  const score = path.join(__dirname, 'out', 'score.wav');
+  const audio = fs.existsSync(score) ? ['-i', score, '-c:a', 'aac', '-b:a', '256k', '-shortest'] : [];
   const ff = spawn('ffmpeg', [
     '-y', '-v', 'error', '-f', 'image2pipe', '-framerate', '24', '-c:v', 'png', '-i', '-',
+    ...audio,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p',
     '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
     '-movflags', '+faststart', out,

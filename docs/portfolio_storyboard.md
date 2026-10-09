@@ -26,6 +26,8 @@ Name treatment: **"Yashish" only** (per your note). There's no surname anywhere 
 | 06 | Craft | 10.00–12.60 | 240–301 | Rotating ring system, word per beat (R16) |
 | 07 | Signature | 12.60–15.00 | 302–359 | Sentence build → hard cut to light end card → mark roll-in (R15, R18) |
 
+> **Retimed for the score (120 BPM, 1 beat = 12 frames).** Cuts that were 1–3 frames off the grid now sit on it: Role swaps f90/96/102, morph f108; "feel" f144; Experience starts f180 (zoom-out f198, Paytm slide f222); Craft words f240/252/264/276; Signature sentence f300/306/312, light end card f324, monogram roll f330–342. `film/film.js` holds the exact frames.
+
 Frame numbers are 0-indexed at 24 fps. "Beat" means a cut point that should land on the music's beat once we pick a track. Timings shift by ±2 frames to snap to it.
 
 ---
