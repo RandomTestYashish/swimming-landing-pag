@@ -78,7 +78,7 @@ The signature is a vermilion that stays clear of **Airtel red** and **Pinterest 
 
 | Property | Reference | Our spec |
 |---|---|---|
-| Family | Pinterest Sans (proprietary grotesk, close to Helvetica Now Display / Neue Haas) | **Inter Tight** (Google Fonts, free). Alternative: Neue Haas Grotesk Display, if you hold a licence. |
+| Family | Pinterest Sans (proprietary grotesk, close to Helvetica Now Display / Neue Haas) | **Inter Display** (OFL, bundled in `film/fonts/`). Chosen over Inter Tight for the build because it's the display cut of the same family. |
 | Weight | Bold throughout. One weight only, no light or regular. | 700 (stack lines up to 800) |
 | Case | **Sentence case** everywhere, including headlines ("Introducing Premiere Spotlight") | Sentence or title case (see decision below) |
 | Tracking | Tight, about −2% on display sizes, about −1% on small | −3% at ≥ 200 px, −1.5% at ≤ 60 px |
@@ -86,14 +86,15 @@ The signature is a vermilion that stays clear of **Airtel red** and **Pinterest 
 | Alignment | Centred for single words and sentences. **Flush-left with an indented last line** for stacks. | Same |
 | Punctuation | Full stops used for emphasis ("ad.", "Ever.") | Same: full stop on the philosophy and closing lines |
 
-**Scale ladder** (as % of frame height, measured in the reference):
+**Scale ladder** (font size as % of frame height, measured from the reference frames; corrected after the first build, as the original estimates were too small):
 
-| Level | Height | Use |
+| Level | Font size | Use |
 |---|---|---|
-| XS | 2.5–3% | Opening whisper ("the spotlight"), small sentence builds |
-| S | 5–6% | Single-word cards, words over geometry |
-| M | 9–10% | Text inside cards |
-| L | 13–15% | Full-frame stacks, hero lines |
+| XS | 3–5% | Opening whisper ("the spotlight"), sentence builds, end-card wordmark |
+| S | 5–6% | Words over geometry, flanking words |
+| M | fit to card | Text inside cards (about 80% of the card's width) |
+| W | about 20% | Single-word cards ("highest", "impact"), about 60% of frame width for long words |
+| L | 27–36% | Full-frame stacks and hero lines that reach the frame edges |
 
 The dramatic moves always **jump between non-adjacent levels** (XS → L), never step gradually.
 
